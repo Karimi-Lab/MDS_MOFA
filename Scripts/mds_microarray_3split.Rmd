@@ -1,0 +1,255 @@
+---
+title: "Microarray Analysis (GSE19429) - MDS"
+author: "Nogayhan Seymen"
+date: "23/10/2023"
+output: 
+  html_document:
+    code_folding: hide
+    highlight: zenburn
+    number_sections: yes
+    theme: yeti
+    toc: yes
+---
+
+```{r setup, include=FALSE, echo=FALSE}
+knitr::opts_knit$set(root.dir = "../Data/")
+library(affy)
+library(oligo)
+library(GEOquery)
+library(ggplot2)
+library(pheatmap)
+library(hgu133plus2.db)
+library(singscore)
+library(survival)
+library(survminer)
+library(readxl)
+```
+
+# Convert probes to genes
+
+```{r,echo=F, eval=T, message=F, warning=FALSE, fig.width=12, fig.height=9}
+# # Read cel files and download metadata from GEO
+# celList <- list.celfiles("../Data/GSE19429_RAW/", full.names = TRUE, listGzipped = T)
+# eset = getGEO("GSE19429")[[1]]
+# raw_data <- oligo::read.celfiles(celList, verbose = F, phenoData = AnnotatedDataFrame(pData(eset)))
+# 
+# norm_eset <- oligo::rma(raw_data)
+# 
+# exp_norm <- log2(Biobase::exprs(norm_eset))
+# # Remove multiple mappings
+# anno_gse19429 <- AnnotationDbi::select(hgu133plus2.db,
+#                                   keys = (featureNames(norm_eset)),
+#                                   columns = "SYMBOL",
+#                                   keytype = "PROBEID")
+# 
+# anno_gse19429 <- subset(anno_gse19429, !is.na(SYMBOL))
+# 
+# anno_grouped <- group_by(anno_gse19429, PROBEID)
+# anno_summarized <- 
+#   dplyr::summarize(anno_grouped, no_of_matches = n_distinct(SYMBOL))
+# anno_filtered <- filter(anno_summarized, no_of_matches > 1)
+# probe_stats <- anno_filtered
+# ids_to_exlude <- (featureNames(norm_eset) %in% probe_stats$PROBEID)
+# gse19429_final <- subset(norm_eset, !ids_to_exlude)
+# fData(gse19429_final)$PROBEID <- rownames(fData(gse19429_final))
+# fData(gse19429_final) <- left_join(fData(gse19429_final), anno_gse19429, by = "PROBEID")
+# 
+# exprs_df <- as.data.frame(exprs(gse19429_final))
+# exprs_df$gene_symbol <- plyr::mapvalues(rownames(exprs_df),
+#                                       from = anno_gse19429$PROBEID,
+#                                       to = anno_gse19429$SYMBOL)
+# 
+# # Remove probes that are not mapped
+# exprs_df_filt <- as.data.frame(exprs_df[!grepl("*_at", exprs_df$gene_symbol),])
+# 
+# # take AVERAGE expression of probes for a single gene
+# exprs_avg <- as.data.frame(limma::avereps(exprs_df_filt, ID=exprs_df_filt$gene_symbol))
+# genes <- exprs_avg[,'gene_symbol']
+# exprs_avg$gene_symbol <- NULL
+# exprs_avg <- as.data.frame(apply(exprs_avg,2,as.numeric))
+# rownames(exprs_avg) <- genes
+# 
+# # Convert GSM IDs to paper IDs
+# mds_ids <- paste0("MDS", sprintf("%003d", seq(1,183)))
+# hc_ids <- paste0("HC", sprintf("%003d", seq(1,17)))
+# ids <- c(mds_ids, hc_ids)
+# 
+# # Make sure gsm ids are ordered in the df
+# if (!isSorted(colnames(exprs_avg))){exprs_avg <- exprs_avg[,order(colnames(exprs_avg))]}
+# 
+# # Save average expression
+# saveRDS(exprs_avg, "../GSE19429_exprs.rds")
+exprs_avg <- readRDS("../GSE19429_exprs.rds")
+```
+
+# Generate singscores
+
+```{r,echo=F, eval=T, message=F, warning=FALSE, fig.width=12, fig.height=9}
+# # Load gene sets 
+# read_excel_allsheets <- function(filename, tibble = FALSE) {
+#   sheets <- readxl::excel_sheets(filename)
+#   x <- lapply(sheets, function(X) readxl::read_excel(filename, sheet = X))
+#   if(!tibble) x <- lapply(x, as.data.frame)
+#   names(x) <- sheets
+#   x
+# }
+# gene_sets <- read_excel_allsheets("../Data/gene_signatures_230607.xlsx")
+# 
+# run_multiScore <- function(x, gs){
+#   gl <- as.list(gs)
+#   gsl <- list()
+#   for (i in 1:length(gl)){
+#     gsl[names(gl)[i]] <- GSEABase::GeneSet(unique(unlist(gl[i])[!is.na(unlist(gl[i]))]), setName = as.character(names(gl)[i]))
+#   }
+#   gs_col <- GSEABase::GeneSetCollection(gsl)
+#   
+#   scores <- singscore::multiScore(x, upSetColc = gs_col)
+#   return(scores)
+# }
+# 
+# ranked_df <- singscore::rankGenes(exprs_avg)
+# rownames(ranked_df) <- genes
+# 
+# # Run singscore for all gene sets for TCGA
+# sign_scores <- lapply(names(gene_sets), FUN = function(x) run_multiScore(ranked_df, gene_sets[[x]]))
+# names(sign_scores) <- names(gene_sets)
+# 
+# singscore_df <- c()
+# for(x in names(sign_scores)){
+#   singscore_df <- c(singscore_df, sign_scores[[x]]["Scores"])
+# }
+# singscore_df <- do.call(args=singscore_df, what=rbind)
+# colnames(singscore_df) <- ids
+# 
+# save(singscore_df, file = "../Data/GSE19429_singscores_df.Rda")
+# 
+# # Find missing genes in cohort
+# missing_genes <- unlist(lapply(names(gene_sets),
+#                                FUN = function(x){paste0(x, ":", setdiff(gene_sets[[x]][[1]], rownames(ranked_df)))}))
+
+load("../GSE19429_singscores_df.Rda")
+```
+
+# Survival data
+
+```{r,echo=F, eval=T, message=F, warning=FALSE, fig.width=12, fig.height=9}
+# surv_df <- readxl::read_excel("../Data/GSE19429_survival_data.xls", sheet = "Sheet1",
+#                               col_names = T)
+# surv_df <- as.data.frame(t(surv_df))
+# colnames(surv_df) <- surv_df["Leukemia paper code",]
+# surv_df <- surv_df[-1,]
+# 
+# save(surv_df, file = "../Data/GSE19429_survival_df.Rda")
+load("../GSE19429_survival_df.Rda")
+surv_df["Survival (days from time of\nsample to last observation)",] <- 
+  as.numeric(surv_df["Survival (days from time of\nsample to last observation)",])
+```
+
+# Survival comparison between quartiles
+## Low-High only
+
+```{r,echo=F, eval=T, message=F, warning=FALSE, fig.width=12, fig.height=9}
+# MDS patients only
+mds_sing <- singscore_df[,1:183]
+
+plot_list <- list()
+i <- 1
+lowHighP <- list()
+
+for(sc in rownames(mds_sing)){
+  tmp <- as.data.frame(t(mds_sing)) %>% mutate(quartile = ntile(get(sc), 4))
+  tmp$quartile <- plyr::mapvalues(tmp$quartile, from = c(1,2,3,4), to = c("Low", "Med", "Med", "High"))
+  
+  plot_df <- as.data.frame(cbind(tmp$quartile, 
+                                 t(surv_df["Survival (days from time of\nsample to last observation)",]),
+                                 t(surv_df["Dead or alive at last observation?",])))
+  colnames(plot_df) <- c("Quartile","Survival","Event")
+  plot_df$Event <- ifelse(plot_df$Event == "ALIVE", 0, 1)
+  
+  plot_df$Quartile <- factor(plot_df$Quartile, levels = c("Low", "Med", "High"), ordered = T)
+  
+  plot_df <- plot_df %>%
+    filter(Quartile != "Med")
+  
+  km_infChem <- survfit(formula = Surv(time = as.numeric(plot_df$Survival), event = plot_df$Event) ~ plot_df$Quartile,
+                        data = plot_df)
+  
+  lowHighP[[sc]] <- survminer::surv_pvalue(km_infChem)$pval
+  
+  g <- ggsurvplot(km_infChem, data = plot_df,
+    conf.int = F, pval = TRUE,
+    fun = function(y) y * 100,
+    legend = "top",
+    xlab = "Time to event", ylab="Survival probability (%)", title= sc, size = 2, censor.size = 15
+  )$plot
+  
+  plot_list[[i]] <- g
+  i <- i + 1 
+}
+
+pdf(file = paste0("../../Figures/microarray_figures/split3_microarray_km_low_high.pdf"),
+        width = 330*0.0394,
+        height = 1200*0.0394)
+pt <- cowplot::plot_grid(plotlist = plot_list, align = "hv",
+              ncol = 1, scale = 1)
+print(pt)
+dev.off()
+```
+
+## Low-Med-High
+
+```{r,echo=F, eval=T, message=F, warning=FALSE, fig.width=12, fig.height=9}
+plot_list <- list()
+i <- 1
+for(sc in rownames(mds_sing)){
+  tmp <- as.data.frame(t(mds_sing)) %>% mutate(quartile = ntile(get(sc), 4))
+  tmp$quartile <- plyr::mapvalues(tmp$quartile, from = c(1,2,3,4), to = c("Low", "Med", "Med", "High"))
+  
+  plot_df <- as.data.frame(cbind(tmp$quartile, 
+                                 t(surv_df["Survival (days from time of\nsample to last observation)",]),
+                                 t(surv_df["Dead or alive at last observation?",])))
+  colnames(plot_df) <- c("Quartile","Survival","Event")
+  plot_df$Event <- ifelse(plot_df$Event == "ALIVE", 0, 1)
+  
+  plot_df$Quartile <- factor(plot_df$Quartile, levels = c("Low", "Med", "High"), ordered = T)
+  
+  km_infChem <- survfit(formula = Surv(time = as.numeric(plot_df$Survival), event = plot_df$Event) ~ plot_df$Quartile,
+                        data = plot_df)
+  
+  g <- ggsurvplot(km_infChem, data = plot_df,
+           conf.int = F, pval = paste0("p-value:",round(lowHighP[[sc]],3)),
+           fun = function(y) y * 100,
+           legend = "top", 
+           legend.title = sc, size = 0.4, censor.size = 2.1,
+           palette = "npg", pval.size = 1.8, pval.coord = c(0.5, 10),
+           legend.labs = c(paste("High"), paste("Low"), paste("Med")), surv.plot.height = 0.3,
+           xlab = "Days", ylab="Survival probability (%)", title= "Overall Survival")$plot + 
+    theme(axis.line = element_line(colour = "black"),
+               panel.grid.major = element_blank(),
+               panel.grid.minor = element_blank(),
+               panel.border = element_blank(),
+               panel.background = element_blank(),
+               axis.ticks.x = element_blank(),
+               axis.text.x = element_text(size = 5, family = "Helvetica", color = "black"),
+               axis.text.y = element_text(size = 5, family = "Helvetica", color = "black"),
+               axis.title.x = element_text(size = 5, family = "Helvetica", color = "black"),
+               legend.position = "top", aspect.ratio = 1,
+               legend.title = element_text(size = 5, family = "Helvetica", color = "black"),
+               legend.text = element_text(size = 5, family = "Helvetica", color = "black"),
+               axis.title.y = element_text(size = 5, family = "Helvetica", color = "black"),
+               plot.title = element_text(size = 5, family = "Helvetica", color = "black", vjust = -3))
+  
+  ggsave(paste0("../../Figures/microarray_figures/split3_microarray_",sc,".pdf"), g, width = 58, height = 58 , units = "mm", dpi = 300)
+  
+  plot_list[[i]] <- g
+  i <- i + 1
+}
+
+pdf(file = paste0("../../Figures/microarray_figures/split3_microarray_km.pdf"),
+        width = 330*0.0394,
+        height = 1200*0.0394)
+pt <- cowplot::plot_grid(plotlist = plot_list, align = "hv",
+              ncol = 1, scale = 1)
+print(pt)
+dev.off()
+```

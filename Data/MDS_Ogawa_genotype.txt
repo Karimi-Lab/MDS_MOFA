@@ -1,0 +1,882 @@
+NRAS	nonsynonymous SNV	PV866
+NRAS	nonsynonymous SNV	PV1092
+NRAS	nonsynonymous SNV	PV1349
+NRAS	nonsynonymous SNV	PV1166
+NRAS	nonsynonymous SNV	PV1345
+NRAS	nonsynonymous SNV	PV481
+NRAS	nonsynonymous SNV	PV965
+NRAS	nonsynonymous SNV	PV866
+NRAS	nonsynonymous SNV	PV1035
+NRAS	nonsynonymous SNV	PV1351
+NRAS	nonsynonymous SNV	PV350
+CSF3R	stopgain SNV	PV1152
+CSF3R	nonsynonymous SNV	PV1078
+CSF3R	nonsynonymous SNV	PV1319
+MPL	nonsynonymous SNV	PV1038
+SMC3	nonsynonymous SNV	PV1092
+SMC3	nonsynonymous SNV	PV631
+CBL	stopgain SNV	PV1325
+CBL	stopgain SNV	PV1238
+CBL	stopgain SNV	PV1168
+CBL	nonsynonymous SNV	PV593
+CBL	nonsynonymous SNV	PV603
+CBL	nonsynonymous SNV	PV1188
+CBL	nonsynonymous SNV	PV869
+CBL	nonsynonymous SNV	PV359
+CBL	nonsynonymous SNV	PV859
+CBL	nonsynonymous SNV	PV1168
+CBL	nonsynonymous SNV	PV869
+CBL	nonsynonymous SNV	PV1406
+CBL	nonsynonymous SNV	PV244
+CBL	nonsynonymous SNV	PV221
+SH2B3	nonsynonymous SNV	PV1206
+PTPN11	nonsynonymous SNV	PV38
+PTPN11	nonsynonymous SNV	PV1015
+ETV6	stopgain SNV	PV598
+ETV6	nonsynonymous SNV	PV1058
+ETV6	nonsynonymous SNV	PV889
+KRAS	nonsynonymous SNV	PV482
+KRAS	nonsynonymous SNV	PV1157
+KRAS	nonsynonymous SNV	PV1427
+KRAS	nonsynonymous SNV	PV898
+KRAS	nonsynonymous SNV	PV1413
+IDH2	nonsynonymous SNV	PV1108
+IDH2	nonsynonymous SNV	PV1303
+IDH2	nonsynonymous SNV	PV1325
+IDH2	nonsynonymous SNV	PV1358
+IDH2	nonsynonymous SNV	PV1406
+CREBBP	stopgain SNV	PV1473
+PRPF8	nonsynonymous SNV	PV1169
+NF1	stopgain SNV	PV605
+PPM1D	stopgain SNV	PV1089
+SRSF2	nonsynonymous SNV	PV1022
+SRSF2	nonsynonymous SNV	PV1078
+SRSF2	nonsynonymous SNV	PV1130
+SRSF2	nonsynonymous SNV	PV1166
+SRSF2	nonsynonymous SNV	PV1187
+SRSF2	nonsynonymous SNV	PV1273
+SRSF2	nonsynonymous SNV	PV1303
+SRSF2	nonsynonymous SNV	PV1319
+SRSF2	nonsynonymous SNV	PV1413
+SRSF2	nonsynonymous SNV	PV1482
+SRSF2	nonsynonymous SNV	PV244
+SRSF2	nonsynonymous SNV	PV870
+SRSF2	nonsynonymous SNV	PV889
+SRSF2	nonsynonymous SNV	PV918
+SRSF2	nonsynonymous SNV	PV1035
+SRSF2	nonsynonymous SNV	PV1138
+SRSF2	nonsynonymous SNV	PV1406
+SRSF2	nonsynonymous SNV	PV359
+SRSF2	nonsynonymous SNV	PV929
+SRSF2	nonsynonymous SNV	PV1103
+SRSF2	nonsynonymous SNV	PV1108
+SRSF2	nonsynonymous SNV	PV1114
+SRSF2	nonsynonymous SNV	PV1169
+SRSF2	nonsynonymous SNV	PV1345
+SRSF2	nonsynonymous SNV	PV1424
+SRSF2	nonsynonymous SNV	PV1434
+SRSF2	nonsynonymous SNV	PV492
+SRSF2	nonsynonymous SNV	PV593
+SRSF2	nonsynonymous SNV	PV603
+SRSF2	nonsynonymous SNV	PV934
+SRSF2	nonsynonymous SNV	PV974
+SRSF2	nonsynonymous SNV	PV177
+SRSF2	nonsynonymous SNV	PV954
+TP53	nonsynonymous SNV	PV1064
+TP53	nonsynonymous SNV	PV756
+TP53	nonsynonymous SNV	PV1358
+TP53	nonsynonymous SNV	PV1323
+TP53	nonsynonymous SNV	PV1272
+TP53	nonsynonymous SNV	PV865
+TP53	nonsynonymous SNV	PV1383
+TP53	nonsynonymous SNV	PV1016
+TP53	nonsynonymous SNV	PV859
+TP53	nonsynonymous SNV	PV865
+TP53	nonsynonymous SNV	PV680
+SF3B1	nonsynonymous SNV	PV921
+SF3B1	nonsynonymous SNV	PV1068
+SF3B1	nonsynonymous SNV	PV1389
+SF3B1	nonsynonymous SNV	PV1016
+SF3B1	nonsynonymous SNV	PV1038
+SF3B1	nonsynonymous SNV	PV1057
+SF3B1	nonsynonymous SNV	PV1066
+SF3B1	nonsynonymous SNV	PV1075
+SF3B1	nonsynonymous SNV	PV1123
+SF3B1	nonsynonymous SNV	PV1206
+SF3B1	nonsynonymous SNV	PV121
+SF3B1	nonsynonymous SNV	PV1216
+SF3B1	nonsynonymous SNV	PV1237
+SF3B1	nonsynonymous SNV	PV1271
+SF3B1	nonsynonymous SNV	PV1315
+SF3B1	nonsynonymous SNV	PV1321
+SF3B1	nonsynonymous SNV	PV1366
+SF3B1	nonsynonymous SNV	PV1407
+SF3B1	nonsynonymous SNV	PV1408
+SF3B1	nonsynonymous SNV	PV1422
+SF3B1	nonsynonymous SNV	PV1470
+SF3B1	nonsynonymous SNV	PV19
+SF3B1	nonsynonymous SNV	PV200
+SF3B1	nonsynonymous SNV	PV350
+SF3B1	nonsynonymous SNV	PV366
+SF3B1	nonsynonymous SNV	PV417
+SF3B1	nonsynonymous SNV	PV481
+SF3B1	nonsynonymous SNV	PV559
+SF3B1	nonsynonymous SNV	PV584
+SF3B1	nonsynonymous SNV	PV588
+SF3B1	nonsynonymous SNV	PV607
+SF3B1	nonsynonymous SNV	PV609
+SF3B1	nonsynonymous SNV	PV618
+SF3B1	nonsynonymous SNV	PV631
+SF3B1	nonsynonymous SNV	PV649
+SF3B1	nonsynonymous SNV	PV701
+SF3B1	nonsynonymous SNV	PV734
+SF3B1	nonsynonymous SNV	PV868
+SF3B1	nonsynonymous SNV	PV869
+SF3B1	nonsynonymous SNV	PV886
+SF3B1	nonsynonymous SNV	PV952
+SF3B1	nonsynonymous SNV	PV983
+SF3B1	nonsynonymous SNV	PV991
+SF3B1	nonsynonymous SNV	PV993
+SF3B1	nonsynonymous SNV	PV995
+SF3B1	nonsynonymous SNV	PV1015
+SF3B1	nonsynonymous SNV	PV584
+SF3B1	nonsynonymous SNV	PV642
+SF3B1	nonsynonymous SNV	PV926
+SF3B1	nonsynonymous SNV	PV872
+SF3B1	nonsynonymous SNV	PV177
+SF3B1	nonsynonymous SNV	PV298
+SF3B1	nonsynonymous SNV	PV482
+SF3B1	nonsynonymous SNV	PV1043
+SF3B1	nonsynonymous SNV	PV1388
+SF3B1	nonsynonymous SNV	PV584
+SF3B1	nonsynonymous SNV	PV1263
+SF3B1	nonsynonymous SNV	PV1403
+SF3B1	nonsynonymous SNV	PV1266
+SF3B1	nonsynonymous SNV	PV605
+SF3B1	nonsynonymous SNV	PV836
+SF3B1	nonsynonymous SNV	PV915
+SF3B1	nonsynonymous SNV	PV1357
+SF3B1	nonsynonymous SNV	PV1482
+SF3B1	nonsynonymous SNV	PV481
+SF3B1	nonsynonymous SNV	PV1156
+SF3B1	nonsynonymous SNV	PV1314
+SF3B1	nonsynonymous SNV	PV663
+IDH1	nonsynonymous SNV	PV1189
+IDH1	nonsynonymous SNV	PV492
+IDH1	nonsynonymous SNV	PV1035
+IDH1	nonsynonymous SNV	PV1046
+IDH1	nonsynonymous SNV	PV695
+IDH1	nonsynonymous SNV	PV929
+DNMT3A	nonsynonymous SNV	PV1408
+DNMT3A	nonsynonymous SNV	PV1123
+DNMT3A	stopgain SNV	PV970
+DNMT3A	nonsynonymous SNV	PV1016
+DNMT3A	nonsynonymous SNV	PV1271
+DNMT3A	nonsynonymous SNV	PV298
+DNMT3A	nonsynonymous SNV	PV298
+DNMT3A	nonsynonymous SNV	PV1064
+ASXL1	stopgain SNV	PV1314
+ASXL1	stopgain SNV	PV1351
+ASXL1	nonsynonymous SNV	PV121
+ASXL1	stopgain SNV	PV881
+ASXL1	stopgain SNV	PV10001
+ASXL1	stopgain SNV	PV683
+ASXL1	nonsynonymous SNV	PV875
+ASXL1	stopgain SNV	PV417
+ASXL1	nonsynonymous SNV	PV1422
+GNAS	nonsynonymous SNV	PV1314
+GNAS	nonsynonymous SNV	PV1366
+GNAS	nonsynonymous SNV	PV889
+RUNX1	nonsynonymous SNV	PV866
+RUNX1	stopgain SNV	PV586
+RUNX1	nonsynonymous SNV	PV698
+RUNX1	nonsynonymous SNV	PV10001
+RUNX1	nonsynonymous SNV	PV929
+RUNX1	nonsynonymous SNV	PV298
+U2AF1	nonsynonymous SNV	PV221
+U2AF1	nonsynonymous SNV	PV586
+U2AF1	nonsynonymous SNV	PV683
+U2AF1	nonsynonymous SNV	PV1046
+U2AF1	nonsynonymous SNV	PV1168
+U2AF1	nonsynonymous SNV	PV598
+U2AF1	nonsynonymous SNV	PV756
+U2AF1	nonsynonymous SNV	PV838
+U2AF1	nonsynonymous SNV	PV1326
+U2AF1	nonsynonymous SNV	PV1380
+U2AF1	nonsynonymous SNV	PV1452
+U2AF1	nonsynonymous SNV	PV448
+CHEK2	nonsynonymous SNV	PV1098
+CHEK2	stopgain SNV	PV912
+GATA2	nonsynonymous SNV	PV965
+GATA2	nonsynonymous SNV	PV1015
+GATA2	nonsynonymous SNV	PV1015
+TET2	stopgain SNV	PV1413
+TET2	stopgain SNV	PV1074
+TET2	stopgain SNV	PV1059
+TET2	stopgain SNV	PV631
+TET2	stopgain SNV	PV679
+TET2	stopgain SNV	PV982
+TET2	stopgain SNV	PV870
+TET2	stopgain SNV	PV679
+TET2	stopgain SNV	PV244
+TET2	stopgain SNV	PV1046
+TET2	stopgain SNV	PV1130
+TET2	nonsynonymous SNV	PV664
+TET2	stopgain SNV	PV1424
+TET2	nonsynonymous SNV	PV1389
+TET2	nonsynonymous SNV	PV1351
+TET2	nonsynonymous SNV	PV1130
+TET2	nonsynonymous SNV	PV869
+TET2	nonsynonymous SNV	PV593
+TET2	stopgain SNV	PV1431
+TET2	nonsynonymous SNV	PV983
+TET2	nonsynonymous SNV	PV1424
+TET2	nonsynonymous SNV	PV676
+TET2	nonsynonymous SNV	PV886
+TET2	nonsynonymous SNV	PV921
+TET2	nonsynonymous SNV	PV974
+TET2	stopgain SNV	PV934
+TET2	nonsynonymous SNV	PV838
+TET2	nonsynonymous SNV	PV1388
+TET2	stopgain SNV	PV1238
+TET2	stopgain SNV	PV618
+TET2	stopgain SNV	PV974
+TET2	stopgain SNV	PV870
+TET2	stopgain SNV	PV1159
+TET2	stopgain SNV	PV683
+TET2	stopgain SNV	PV642
+TET2	stopgain SNV	PV1187
+TET2	stopgain SNV	PV698
+TET2	nonsynonymous SNV	PV1482
+TET2	nonsynonymous SNV	PV1263
+TET2	nonsynonymous SNV	PV1388
+IRF1	stopgain SNV	PV701
+DDX41	stopgain SNV	PV1336
+DDX41	stopgain SNV	PV1334
+CUX1	stopgain SNV	PV1345
+CUX1	stopgain SNV	PV1424
+CUX1	stopgain SNV	PV603
+CUX1	stopgain SNV	PV1022
+CUX1	stopgain SNV	PV1022
+CUX1	stopgain SNV	PV1142
+CUX1	stopgain SNV	PV415
+EZH2	nonsynonymous SNV	PV868
+EZH2	nonsynonymous SNV	PV1351
+EZH2	nonsynonymous SNV	PV1388
+EZH2	nonsynonymous SNV	PV219
+EZH2	nonsynonymous SNV	PV1142
+EZH2	stopgain SNV	PV1038
+EZH2	stopgain SNV	PV866
+JAK2	nonsynonymous SNV	PV121
+JAK2	nonsynonymous SNV	PV1216
+JAK2	nonsynonymous SNV	PV1303
+JAK2	nonsynonymous SNV	PV593
+JAK2	nonsynonymous SNV	PV631
+JAK2	nonsynonymous SNV	PV990
+STAG2	stopgain SNV	PV866
+STAG2	stopgain SNV	PV448
+STAG2	stopgain SNV	PV1046
+PHF6	stopgain SNV	PV683
+PHF6	stopgain SNV	PV1074
+PHF6	nonsynonymous SNV	PV929
+BRCC3	stopgain SNV	PV1022
+BRCC3	stopgain SNV	PV934
+BRCC3	stopgain SNV	PV1263
+ZRSR2	stopgain SNV	PV1431
+ZRSR2	stopgain SNV	PV1046
+ZRSR2	nonsynonymous SNV	PV1103
+ZRSR2	stopgain SNV	PV1431
+ZRSR2	stopgain SNV	PV628
+ZRSR2	stopgain SNV	PV679
+BCOR	stopgain SNV	PV954
+ATRX	nonsynonymous SNV	PV1206
+U2AF1	nonsynonymous SNV	PV1459
+U2AF1	nonsynonymous SNV	PV1218
+DNMT3A	nonsynonymous SNV	PV1350
+ASXL1	stopgain SNV	PV918
+TET2	stopgain SNV	PV1273
+ASXL1	stopgain SNV	PV1058
+EZH2	nonsynonymous SNV	PV242
+KIT	nonsynonymous SNV	PV912
+TET2	nonsynonymous SNV	PV1066
+KRAS	nonsynonymous SNV	PV1437
+ZRSR2	nonsynonymous SNV	PV1394
+SETBP1	nonsynonymous SNV	PV1169
+SETBP1	nonsynonymous SNV	PV359
+SETBP1	nonsynonymous SNV	PV982
+SETBP1	nonsynonymous SNV	PV1355
+SETBP1	nonsynonymous SNV	PV598
+SETBP1	nonsynonymous SNV	PV698
+SETBP1	nonsynonymous SNV	PV1078
+SETBP1	nonsynonymous SNV	PV1103
+SETBP1	nonsynonymous SNV	PV1166
+SETBP1	nonsynonymous SNV	PV359
+SETBP1	nonsynonymous SNV	PV1319
+DCLRE1C	frameshift insertion	PV689
+ATM	frameshift deletion	PV776
+CBL	frameshift deletion	PV1406
+WT1	frameshift insertion	PV965
+WT1	frameshift insertion	PV875
+ETV6	frameshift insertion	PV1388
+ETV6	frameshift insertion	PV954
+ETV6	frameshift deletion	PV1078
+ARID2	frameshift deletion	PV1325
+ARID2	frameshift deletion	PV647
+ARID2	frameshift insertion	PV1473
+KMT2D	frameshift insertion	PV838
+CTCF	frameshift insertion	PV934
+NF1	frameshift insertion	PV603
+SRSF2	nonframeshift deletion	PV10001
+SRSF2	nonframeshift deletion	PV1092
+SRSF2	nonframeshift deletion	PV1189
+SRSF2	nonframeshift deletion	PV221
+SRSF2	nonframeshift deletion	PV676
+SRSF2	nonframeshift deletion	PV698
+CALR	frameshift insertion	PV970
+CALR	frameshift insertion	PV993
+SF3B1	nonframeshift deletion	PV259
+SF3B1	nonframeshift deletion	PV1464
+DNMT3A	frameshift insertion	PV701
+DNMT3A	frameshift deletion	PV1458
+DNMT3A	frameshift deletion	PV1121
+DNMT3A	frameshift deletion	PV965
+DNMT3A	frameshift deletion	PV1315
+DNMT3A	frameshift insertion	PV1334
+DNMT3A	frameshift deletion	PV1222
+ASXL1	stopgain SNV	PV929
+ASXL1	frameshift insertion	PV642
+ASXL1	frameshift deletion	PV1366
+ASXL1	frameshift deletion	PV1092
+ASXL1	frameshift deletion	PV1473
+ASXL1	frameshift deletion	PV219
+ASXL1	frameshift insertion	PV1046
+ASXL1	frameshift insertion	PV1142
+ASXL1	frameshift insertion	PV1168
+ASXL1	frameshift insertion	PV1345
+ASXL1	frameshift insertion	PV1365
+ASXL1	frameshift insertion	PV1413
+ASXL1	frameshift insertion	PV1432
+ASXL1	frameshift insertion	PV221
+ASXL1	frameshift insertion	PV359
+ASXL1	frameshift insertion	PV415
+ASXL1	frameshift insertion	PV492
+ASXL1	frameshift insertion	PV586
+ASXL1	frameshift insertion	PV603
+ASXL1	frameshift insertion	PV698
+ASXL1	frameshift insertion	PV866
+ASXL1	frameshift insertion	PV898
+ASXL1	frameshift insertion	PV937
+ASXL1	frameshift insertion	PV954
+ASXL1	frameshift insertion	PV974
+ASXL1	frameshift insertion	PV605
+ASXL1	frameshift deletion	PV1389
+ASXL1	frameshift deletion	PV1358
+ASXL1	frameshift deletion	PV838
+ASXL1	frameshift deletion	PV990
+ASXL1	frameshift insertion	PV1222
+ASXL1	frameshift insertion	PV663
+ASXL1	frameshift insertion	PV1156
+ASXL1	frameshift deletion	PV1169
+ASXL1	frameshift insertion	PV1222
+ASXL1	frameshift insertion	PV689
+ASXL1	frameshift insertion	PV872
+ASXL1	frameshift deletion	PV1092
+RUNX1	frameshift deletion	PV974
+RUNX1	frameshift deletion	PV868
+RUNX1	frameshift deletion	PV929
+RUNX1	frameshift insertion	PV448
+RUNX1	frameshift deletion	PV1074
+RUNX1	frameshift insertion	PV868
+RUNX1	frameshift deletion	PV298
+RUNX1	frameshift deletion	PV934
+CHEK2	frameshift deletion	PV1380
+EP300	frameshift deletion	PV1188
+GATA2	nonframeshift deletion	PV1092
+STAG1	frameshift deletion	PV609
+TET2	stopgain SNV	PV1482
+TET2	stopgain SNV	PV734
+TET2	frameshift deletion	PV1273
+TET2	frameshift insertion	PV869
+TET2	frameshift deletion	PV1366
+TET2	frameshift deletion	PV1138
+TET2	frameshift deletion	PV1138
+TET2	frameshift deletion	PV1046
+TET2	frameshift deletion	PV683
+TET2	frameshift insertion	PV1156
+TET2	frameshift deletion	PV642
+TET2	frameshift insertion	PV481
+TET2	frameshift deletion	PV676
+TET2	frameshift insertion	PV1408
+TET2	frameshift insertion	PV1114
+TET2	frameshift deletion	PV244
+TET2	frameshift deletion	PV838
+TET2	frameshift deletion	PV934
+TET2	frameshift insertion	PV1321
+TET2	frameshift deletion	PV1074
+TET2	frameshift deletion	PV1434
+TET2	frameshift deletion	PV1394
+TET2	frameshift deletion	PV1319
+TET2	frameshift deletion	PV1394
+TET2	nonframeshift deletion	PV259
+TET2	frameshift insertion	PV1437
+TET2	frameshift insertion	PV1188
+TET2	stopgain SNV	PV1114
+TET2	stopgain SNV	PV1188
+TET2	frameshift deletion	PV593
+TET2	frameshift deletion	PV1238
+TET2	frameshift deletion	PV631
+TET2	frameshift insertion	PV1319
+TET2	frameshift deletion	PV1365
+IRF1	frameshift insertion	PV559
+NPM1	frameshift insertion	PV965
+CUX1	frameshift insertion	PV859
+CUX1	frameshift deletion	PV19
+CUX1	frameshift deletion	PV642
+EZH2	frameshift deletion	PV1046
+EZH2	frameshift deletion	PV415
+STAG2	stopgain SNV	PV1020
+STAG2	frameshift deletion	PV177
+STAG2	frameshift deletion	PV1020
+PHF6	frameshift insertion	PV219
+PHF6	frameshift insertion	PV1365
+PHF6	frameshift deletion	PV695
+ZRSR2	frameshift deletion	PV642
+ZRSR2	frameshift deletion	PV1238
+ZRSR2	frameshift deletion	PV359
+BCOR	frameshift deletion	PV1326
+BCOR	frameshift insertion	PV1319
+USP9X	frameshift deletion	PV1458
+TET2	frameshift deletion	PV1413
+TP53	frameshift insertion	PV1087
+SH2B3	frameshift deletion	PV916
+U2AF2	nonframeshift deletion	PV1191
+ASXL2	frameshift deletion	PV1166
+SF3B1	nonsynonymous SNV	PV1127
+RUNX1	stopgain SNV	PV1127
+TET2	nonsynonymous SNV	PV928
+TET2	frameshift deletion	PV928
+JAK2	nonsynonymous SNV	PV928
+FLT3	ITD	PV1092
+GATA2	frameshift insertion	PV1092
+RUNX1	frameshift insertion	PV1142
+TET2	frameshift insertion	PV1365
+ZRSR2	frameshift insertion	PV838
+FLT3	ITD	PV875
+CEBPA	frameshift insertion	PV954
+RUNX1	frameshift insertion	PV954
+MLL	PTD	PV38
+MLL	PTD	PV1078
+MLL	PTD	PV1089
+MLL	PTD	PV1334
+MLL	PTD	PV1413
+MLL	PTD	PV693
+MLL	PTD	PV756
+MLL	PTD	PV932
+RUNX1-EVI1	fusion	PV1152
+NRIP1-EVI1	fusion	PV481
+NRIP1-EVI1	fusion	PV482
+NUP98-NSD1	fusion	PV875
+GATA1	splice_site	PV658
+TET2	splice_site	PV1022
+TP53	splice_site	PV1272
+RAD21	splice_site	PV1432
+TET2	splice_site	PV1437
+CBL	splice_site	PV869
+STAG2	splice_site	PV676
+EP300	splice_site	PV1058
+KDM6A	splice_site	PV1432
+BCOR	intronic_splicing	PV448
+STAG2	exonic_splicing	PV492
+EZH2	intronic_splicing	PV1351
+CUX1	intronic_splicing	PV838
+CSF3R	intronic_splicing	PV559
+TP53	exonic_splicing	PV865
+CHEK2	intronic_splicing	PV1350
+5q	Deletion	PV175
+5q	Deletion	PV200
+5q	Deletion	PV225
+11q	Deletion	PV225
+20p	Deletion	PV366
+20q	Deletion	PV366
+5q	Deletion	PV559
+3q	Gain	PV584
+11q	Deletion	PV584
+7/7q	Deletion	PV586
+7/7q	Deletion	PV598
+20q	Deletion	PV607
+5q	Deletion	PV647
+11q	Deletion	PV692
+11q	Deletion	PV698
+8	Gain	PV776
+3	Deletion	PV865
+5q	Deletion	PV865
+7/7q	Deletion	PV865
+12p	Deletion	PV865
+20p	Gain	PV865
+20q	Deletion	PV865
+8	Gain	PV866
+7/7q	Deletion	PV868
+20q	Deletion	PV868
+8	Gain	PV889
+5q	Deletion	PV910
+21	Gain	PV910
+5q	Deletion	PV912
+20q	Deletion	PV918
+5q	Deletion	PV932
+7/7q	Deletion	PV982
+8	Gain	PV1016
+7/7q	Deletion	PV1058
+4q	Deletion	PV1064
+5q	Deletion	PV1064
+7/7q	Deletion	PV1064
+10p	Deletion	PV1064
+12p	Deletion	PV1064
+13	Deletion	PV1064
+5q	Deletion	PV1075
+5q	Deletion	PV1087
+7/7q	Deletion	PV1087
+18p	Deletion	PV1087
+20q	Deletion	PV1087
+8	Gain	PV1092
+5q	Deletion	PV1098
+8	Gain	PV1123
+7/7q	Deletion	PV1152
+8	Gain	PV1152
+5q	Deletion	PV1159
+8	Gain	PV1169
+5q	Deletion	PV1173
+8	Gain	PV1179
+20q	Deletion	PV1179
+11q	Deletion	PV1206
+20q	Deletion	PV1218
+8	Gain	PV1271
+7/7q	Deletion	PV1152
+1q	Gain	PV1272
+5q	Deletion	PV1272
+6p	Deletion	PV1272
+9p	Gain	PV1272
+9q	Deletion	PV1272
+11q	Deletion	PV1272
+18p	Deletion	PV1272
+21	Gain	PV1272
+20q	Deletion	PV1313
+8	Gain	PV1321
+7/7q	Deletion	PV1323
+8	Gain	PV1323
+12p	Deletion	PV1323
+17p	Deletion	PV1323
+20p	Gain	PV1323
+20q	Deletion	PV1323
+21	Deletion	PV1323
+7/7q	Deletion	PV1345
+5q	Deletion	PV1355
+7/7q	Deletion	PV1355
+5q	Deletion	PV1358
+5q	Deletion	PV1380
+21	Gain	PV1380
+1p	Gain	PV1383
+3	Deletion	PV1383
+5q	Deletion	PV1383
+11q	Deletion	PV1422
+20q	Deletion	PV1459
+8	Gain	PV1470
+5q	Deletion	PV680
+7/7q	Deletion	PV680
+20q	Deletion	PV680
+20q	Deletion	PV1127
+Y	Deletion	PV1350
+Y	Deletion	PV1395
+Y	Deletion	PV1437
+DNMT3A	Focal_del	PV38
+ETV6	Focal_del	PV38
+CUX1	Focal_del	PV221
+DNMT3A	Focal_del	PV598
+CUX1	Focal_del	PV603
+ETV6	Focal_del	PV698
+CUX1	Focal_del	PV859
+GIGYF1	Focal_del	PV859
+RB1	Focal_del	PV865
+NF1	Focal_del	PV865
+EP300	Focal_del	PV865
+ETV6	Focal_del	PV982
+CUX1	Focal_del	PV1038
+NF1	Focal_del	PV1046
+MLL2	Focal_del	PV1087
+TP53	Focal_del	PV1087
+DCLRE1C	Focal_amp	PV1089
+NRIP1	Focal_del	PV1098
+NXF1	Focal_del	PV1103
+SF1	Focal_del	PV1103
+NF1	Focal_del	PV1168
+SRSF2	Focal_del	PV1188
+ASXL2	Focal_del	PV1218
+DNMT3A	Focal_del	PV1218
+DNMT3A	Focal_del	PV1261
+SH2B3	Focal_del	PV1261
+CTCF	Focal_del	PV1325
+NF1	Focal_del	PV1325
+RB1	Focal_del	PV1365
+FANCA	Focal_del	PV1383
+TET2	Focal_del	PV1388
+DCLRE1C	Focal_amp	PV1389
+BRCC3	Focal_amp	PV1397
+EZH2	Focal_del	PV1407
+NF1	Focal_del	PV1432
+DCLRE1C	Focal_amp	PV1473
+CUX1	Focal_del	PV1482
+GIGYF1	Focal_del	PV1482
+TET2	Focal_del	PV1345
+CUX1	Focal_del	PV1345
+11q	UPD	PV221
+6q	UPD	PV225
+4q	UPD	PV259
+7q	UPD	PV415
+22q	UPD	PV598
+4q	UPD	PV628
+12q	UPD	PV628
+9p	UPD	PV631
+11q	UPD	PV676
+1p	UPD	PV698
+21q	UPD	PV698
+7q	UPD	PV866
+13q	UPD	PV889
+12q	UPD	PV916
+4q	UPD	PV983
+4q	UPD	PV1022
+7q	UPD	PV1022
+4q	UPD	PV1046
+4q	UPD	PV1059
+17p	UPD	PV1064
+7q	UPD	PV1142
+11q	UPD	PV1188
+6p	UPD	PV1196
+14q	UPD	PV1206
+4q	UPD	PV1263
+18q	UPD	PV1272
+9p	UPD	PV1303
+1q	UPD	PV1313
+11q	UPD	PV1325
+2p	UPD	PV1350
+1p	UPD	PV1351
+11p	UPD	PV1351
+17p	UPD	PV1383
+9p	UPD	PV1388
+3q	UPD	PV1408
+4q	UPD	PV1424
+8q	UPD	PV1473
+4q	UPD	PV1482
+17p	UPD	PV680
+WHO_subtype	RCMD-RS	PV19
+WHO_subtype	AML-MDS	PV38
+WHO_subtype	RARS-T	PV121
+WHO_subtype	RAEB-1	PV175
+WHO_subtype	RAEB-2	PV177
+WHO_subtype	RAEB-2	PV200
+WHO_subtype	RCUD	PV219
+WHO_subtype	RCMD-RS	PV221
+WHO_subtype	RAEB-2	PV225
+WHO_subtype	RCMD	PV242
+WHO_subtype	RCUD	PV244
+WHO_subtype	RAEB-1	PV259
+WHO_subtype	RARS	PV298
+WHO_subtype	RAEB-1	PV350
+WHO_subtype	RAEB-1	PV359
+WHO_subtype	RARS	PV366
+WHO_subtype	RCUD	PV415
+WHO_subtype	RARS	PV417
+WHO_subtype	RAEB-2	PV448
+WHO_subtype	RAEB-2	PV481
+WHO_subtype	RAEB-2	PV482
+WHO_subtype	RAEB-2	PV492
+WHO_subtype	RCMD	PV554
+WHO_subtype	MDSdel(5q)	PV559
+WHO_subtype	RARS	PV584
+WHO_subtype	RCMD	PV586
+WHO_subtype	RCUD	PV587
+WHO_subtype	RARS	PV588
+WHO_subtype	CMML-1	PV593
+WHO_subtype	RAEB-1	PV598
+WHO_subtype	RAEB-2	PV603
+WHO_subtype	RCMD-RS	PV605
+WHO_subtype	RARS	PV607
+WHO_subtype	RARS	PV609
+WHO_subtype	RCMD-RS	PV618
+WHO_subtype	RAEB-1	PV628
+WHO_subtype	RARS-T	PV631
+WHO_subtype	RARS	PV642
+WHO_subtype	RAEB-1	PV647
+WHO_subtype	RARS	PV649
+WHO_subtype	RAEB-2	PV656
+WHO_subtype	RCMD	PV658
+WHO_subtype	RARS-T	PV663
+WHO_subtype	RCMD	PV664
+WHO_subtype	RCMD	PV674
+WHO_subtype	RCMD	PV676
+WHO_subtype	RCMD	PV679
+WHO_subtype	RAEB-2	PV680
+WHO_subtype	CMML-1	PV683
+WHO_subtype	RCMD	PV689
+WHO_subtype	RCMD-RS	PV692
+WHO_subtype	AML-MDS	PV693
+WHO_subtype	AML-MDS	PV695
+WHO_subtype	AML-MDS	PV698
+WHO_subtype	RARS	PV699
+WHO_subtype	RARS	PV701
+WHO_subtype	RCMD-RS	PV734
+WHO_subtype	RCUD	PV756
+WHO_subtype	CMML-1	PV776
+WHO_subtype	RCMD-RS	PV836
+WHO_subtype	RCMD	PV838
+WHO_subtype	AML-MDS	PV859
+WHO_subtype	AML-MDS	PV865
+WHO_subtype	CMML-1	PV866
+WHO_subtype	AML-MDS	PV868
+WHO_subtype	CMML-1	PV869
+WHO_subtype	CMML-1	PV870
+WHO_subtype	RARS	PV872
+WHO_subtype	RCUD	PV873
+WHO_subtype	AML-MDS	PV875
+WHO_subtype	RAEB-1	PV881
+WHO_subtype	RARS-T	PV886
+WHO_subtype	RAEB-1	PV889
+WHO_subtype	CMML-1	PV898
+WHO_subtype	RCMD	PV906
+WHO_subtype	RAEB-1	PV910
+WHO_subtype	RAEB-1	PV912
+WHO_subtype	AML-MDS	PV913
+WHO_subtype	RCMD-RS	PV915
+WHO_subtype	RCMD	PV916
+WHO_subtype	RCMD-RS	PV918
+WHO_subtype	RARS	PV921
+WHO_subtype	RCUD	PV922
+WHO_subtype	RARS	PV926
+WHO_subtype	CMML-1	PV928
+WHO_subtype	AML-MDS	PV929
+WHO_subtype	RCMD	PV932
+WHO_subtype	CMML-1	PV934
+WHO_subtype	RAEB-1	PV937
+WHO_subtype	RARS	PV952
+WHO_subtype	AML-MDS	PV954
+WHO_subtype	AML-MDS	PV965
+WHO_subtype	RAEB-1	PV970
+WHO_subtype	CMML-1	PV974
+WHO_subtype	RCMD	PV982
+WHO_subtype	RARS	PV983
+WHO_subtype	RAEB-1	PV990
+WHO_subtype	RARS	PV991
+WHO_subtype	RARS-T	PV993
+WHO_subtype	RARS	PV995
+WHO_subtype	RCUD	PV1009
+WHO_subtype	RAEB-1	PV1015
+WHO_subtype	RCMD-RS	PV1016
+WHO_subtype	RCMD	PV1020
+WHO_subtype	CMML-1	PV1022
+WHO_subtype	RAEB-1	PV1035
+WHO_subtype	RARS-T	PV1038
+WHO_subtype	RARS	PV1043
+WHO_subtype	AML-MDS	PV1046
+WHO_subtype	RARS	PV1057
+WHO_subtype	RCMD	PV1058
+WHO_subtype	CMML-1	PV1059
+WHO_subtype	RAEB-2	PV1064
+WHO_subtype	RCMD-RS	PV1066
+WHO_subtype	RARS	PV1068
+WHO_subtype	RCMD	PV1074
+WHO_subtype	MDSdel(5q)	PV1075
+WHO_subtype	MDS/MPN-U	PV1078
+WHO_subtype	RAEB-2	PV1087
+WHO_subtype	RCMD	PV1089
+WHO_subtype	AML-MDS	PV1092
+WHO_subtype	RCUD	PV1098
+WHO_subtype	MDSdel(5q)	PV1101
+WHO_subtype	RAEB-2	PV1103
+WHO_subtype	RCMD	PV1108
+WHO_subtype	RCUD	PV1113
+WHO_subtype	CMML-1	PV1114
+WHO_subtype	RCMD	PV1121
+WHO_subtype	RCMD-RS	PV1123
+WHO_subtype	RAEB-1	PV1127
+WHO_subtype	CMML-1	PV1130
+WHO_subtype	CMML-1	PV1138
+WHO_subtype	RAEB-1	PV1142
+WHO_subtype	RAEB-2	PV1152
+WHO_subtype	RARS	PV1156
+WHO_subtype	CMML-1	PV1157
+WHO_subtype	RCUD	PV1158
+WHO_subtype	RCMD	PV1159
+WHO_subtype	MDS/MPN-U	PV1166
+WHO_subtype	CMML-1	PV1168
+WHO_subtype	MDS/MPN-U	PV1169
+WHO_subtype	MDSdel(5q)	PV1173
+WHO_subtype	RAEB-2	PV1178
+WHO_subtype	RCMD	PV1179
+WHO_subtype	CMML-1	PV1187
+WHO_subtype	RCMD	PV1188
+WHO_subtype	RCMD-RS	PV1189
+WHO_subtype	CMML-1	PV1191
+WHO_subtype	RCMD	PV1196
+WHO_subtype	RARS-T	PV1206
+WHO_subtype	RCMD	PV1215
+WHO_subtype	RARS	PV1216
+WHO_subtype	RCMD	PV1218
+WHO_subtype	RCMD	PV1222
+WHO_subtype	RCMD	PV1236
+WHO_subtype	RARS	PV1237
+WHO_subtype	CMML-1	PV1238
+WHO_subtype	RCMD	PV1261
+WHO_subtype	CMML-1	PV1263
+WHO_subtype	RCMD-RS	PV1266
+WHO_subtype	RARS	PV1271
+WHO_subtype	RAEB-1	PV1272
+WHO_subtype	RARS	PV1273
+WHO_subtype	RCMD	PV1276
+WHO_subtype	AML-MDS	PV1284
+WHO_subtype	CMML-1	PV1303
+WHO_subtype	RCMD	PV1313
+WHO_subtype	RARS	PV1314
+WHO_subtype	RCMD-RS	PV1315
+WHO_subtype	CMML-1	PV1319
+WHO_subtype	RARS	PV1321
+WHO_subtype	RAEB-2	PV1323
+WHO_subtype	AML-MDS	PV1325
+WHO_subtype	RAEB-2	PV1326
+WHO_subtype	RAEB-2	PV1329
+WHO_subtype	RAEB-2	PV1334
+WHO_subtype	RAEB-2	PV1336
+WHO_subtype	AML-MDS	PV1345
+WHO_subtype	CMML-1	PV1349
+WHO_subtype	RAEB-2	PV1350
+WHO_subtype	CMML-1	PV1351
+WHO_subtype	RCMD	PV1355
+WHO_subtype	RARS	PV1357
+WHO_subtype	RAEB-2	PV1358
+WHO_subtype	RAEB-1	PV1365
+WHO_subtype	RARS	PV1366
+WHO_subtype	RCMD	PV1370
+WHO_subtype	RAEB-1	PV1380
+WHO_subtype	RAEB-2	PV1383
+WHO_subtype	RARS-T	PV1388
+WHO_subtype	RCMD-RS	PV1389
+WHO_subtype	RCMD	PV1394
+WHO_subtype	RCMD	PV1395
+WHO_subtype	RCMD	PV1397
+WHO_subtype	RARS	PV1403
+WHO_subtype	CMML-1	PV1406
+WHO_subtype	RARS	PV1407
+WHO_subtype	CMML-1	PV1408
+WHO_subtype	CMML-2	PV1413
+WHO_subtype	RAEB-2	PV1422
+WHO_subtype	CMML-1	PV1424
+WHO_subtype	CMML-1	PV1427
+WHO_subtype	RCMD-RS	PV1431
+WHO_subtype	CMML-1	PV1432
+WHO_subtype	CMML-1	PV1434
+WHO_subtype	CMML-1	PV1437
+WHO_subtype	RAEB-2	PV1452
+WHO_subtype	RCMD	PV1458
+WHO_subtype	RCMD	PV1459
+WHO_subtype	RAEB-1	PV1464
+WHO_subtype	RARS	PV1470
+WHO_subtype	RCMD	PV1473
+WHO_subtype	RARS	PV1482
+WHO_subtype	AML-MDS	PV10001
