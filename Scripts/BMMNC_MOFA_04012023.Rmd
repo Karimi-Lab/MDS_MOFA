@@ -1,5 +1,5 @@
 ---
-title: "01102023 MOFA without antigens view on discovery data"
+title: "MOFA on BMMNC cohort"
 date: "2023-06-30"
 output: 
   html_document:
