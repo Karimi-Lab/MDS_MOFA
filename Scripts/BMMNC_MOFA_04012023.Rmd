@@ -1,0 +1,1099 @@
+---
+title: "01102023 MOFA without antigens view on discovery data"
+date: "2023-06-30"
+output: 
+  html_document:
+    code_folding: hide
+    highlight: zenburn
+    number_sections: yes
+    theme: yeti
+    toc: yes
+---
+
+```{=html}
+<style type="text/css">
+.main-container {
+  max-width: 90%;
+  margin-left: 150px;
+  margin-right: auto;
+}
+</style>
+```
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r packages, echo=F, warning=F, include=F, message=F}
+library(MOFA2)
+library(MOFAdata)
+library(ggplot2)
+library(data.table)
+library(tidyverse)
+library(stringr)
+library(caret)
+library(survival)
+library(survminer)
+library(dynpred)
+library(dplyr)
+library(GGally)
+library(rhdf5)
+library(ComplexHeatmap)
+library(gridExtra)
+library(circlize)
+library(cowplot)
+library(finalfit)
+library(ggsci)
+```
+
+
+
+
+# BMMNC Data 
+```{r mofa object, echo=F, message=F, warning=F}
+# load hdf5 file of trained MOFA model 
+set.seed(111)
+MOFAobject.trained <- load_model("../data/MOFA_models/1102023_MOFA_without_antigens_scale_view_T.hdf5")
+
+# MOFAobject <- create_mofa(matrices)
+plot_data_overview(MOFAobject.trained)
+
+```
+
+
+```{r add metadata, echo=F, include=F}
+# add metadata to model ------
+load("../data/MDS_BMMNC_data/MDS_BMMNC_clinical_df_newCat.Rda")
+
+# The number of rows must match the total number of samples in the model 
+sum(MOFAobject.trained@dimensions$N)
+bmmnc_df <- clinical_bmmnc # clinical df backup
+
+bmmnc_df$sample <- rownames(bmmnc_df)
+
+samples_metadata(MOFAobject.trained) <- bmmnc_df
+
+which(MOFAobject.trained@features_metadata$feature == "Immunology_APM loss") # 179 
+which(MOFAobject.trained@features_metadata$feature == "Immunology_Single-gene signatures") # 194
+which(MOFAobject.trained@features_metadata$feature == "Immunology_Inflammatory chemokines") # 185
+which(MOFAobject.trained@features_metadata$feature == "Aging_Inflammaging")
+which(MOFAobject.trained@features_metadata$feature == "Simple_repeat:Simple_repeat")
+removeTef <- c(grep("DNA", MOFAobject.trained@features_metadata$feature), grep("Satellite", MOFAobject.trained@features_metadata$feature))
+
+
+MOFAobject.trained@features_metadata <- MOFAobject.trained@features_metadata[-c(41,85,115,130,121, removeTef),]
+
+
+which(rownames(MOFAobject.trained@data$Immunology$group1) == "Immunology_APM loss")
+which(rownames(MOFAobject.trained@data$Immunology$group1) == "Immunology_Single-gene signatures")
+which(rownames(MOFAobject.trained@data$Immunology$group1) == "Immunology_Inflammatory chemokines") #17, 23 and 32
+which(rownames(MOFAobject.trained@data$Aging$group1) == "Aging_Inflammaging") #17, 23 and 32
+which(rownames(MOFAobject.trained@data$TE$group1) == "Simple_repeat:Simple_repeat") #17, 23 and 32
+removeTe <- c(grep("DNA", rownames(MOFAobject.trained@data$TE$group1)), grep("Satellite", rownames(MOFAobject.trained@data$TE$group1)))
+
+
+MOFAobject.trained@data$Immunology$group1 <- MOFAobject.trained@data$Immunology$group1[-c(17,23,32),]
+MOFAobject.trained@data$Aging$group1 <- MOFAobject.trained@data$Aging$group1[-3,]
+MOFAobject.trained@data$TE$group1 <- MOFAobject.trained@data$TE$group1[-41,]
+MOFAobject.trained@data$TE$group1 <- MOFAobject.trained@data$TE$group1[-removeTe,]
+
+MOFAobject.trained@expectations$W$Immunology <- MOFAobject.trained@expectations$W$Immunology[-c(17, 23, 32),]
+MOFAobject.trained@expectations$W$Aging <- MOFAobject.trained@expectations$W$Aging[-3,]
+MOFAobject.trained@expectations$W$TE <- MOFAobject.trained@expectations$W$TE[-41,]
+MOFAobject.trained@expectations$W$TE <- MOFAobject.trained@expectations$W$TE[-removeTe,]
+
+# remove gene sets name ----
+MOFAobject.trained@features_metadata$feature <- gsub(".*\\_", "", MOFAobject.trained@features_metadata$feature)
+
+rownames(MOFAobject.trained@data$Aging$group1) <- gsub(".*\\_", "", rownames(MOFAobject.trained@data$Aging$group1))
+rownames(MOFAobject.trained@data$Immunology$group1) <- gsub(".*\\_", "", rownames(MOFAobject.trained@data$Immunology$group1))
+rownames(MOFAobject.trained@data$Cellular$group1) <- gsub(".*\\_", "", rownames(MOFAobject.trained@data$Cellular$group1))
+
+
+names(MOFAobject.trained@intercepts$Cellular$group1) <- gsub(".*\\_", "", names(MOFAobject.trained@intercepts$Cellular$group1))
+names(MOFAobject.trained@intercepts$Aging$group1) <- gsub(".*\\_", "", names(MOFAobject.trained@intercepts$Aging$group1))
+names(MOFAobject.trained@intercepts$Immunology$group1) <- gsub(".*\\_", "", names(MOFAobject.trained@intercepts$Immunology$group1))
+
+
+rownames(MOFAobject.trained@expectations$W$Immunology) <- gsub(".*\\_", "", rownames(MOFAobject.trained@expectations$W$Immunology))
+rownames(MOFAobject.trained@expectations$W$Aging) <- gsub(".*\\_", "", rownames(MOFAobject.trained@expectations$W$Aging))
+rownames(MOFAobject.trained@expectations$W$Cellular) <- gsub(".*\\_", "", rownames(MOFAobject.trained@expectations$W$Cellular))
+
+
+which(MOFAobject.trained@features_metadata$feature == "Cytotolytic score")
+MOFAobject.trained@features_metadata$feature[114] <- "Cytolytic score"
+
+which(rownames(MOFAobject.trained@data$Immunology$group1) == "Cytotolytic score")
+rownames(MOFAobject.trained@data$Immunology$group1)[39] <- "Cytolytic score"
+
+which(rownames(MOFAobject.trained@expectations$W$Immunology) == "Cytotolytic score")
+rownames(MOFAobject.trained@expectations$W$Immunology)[39] <- "Cytolytic score"
+
+which(MOFAobject.trained@features_metadata$feature == "AML")
+MOFAobject.trained@features_metadata$feature[55] <- "Progress to AML"
+
+which(rownames(MOFAobject.trained@data$clinical_category$group1) == "AML")
+rownames(MOFAobject.trained@data$clinical_category$group1)[2] <- "Progress to AML"
+
+which(rownames(MOFAobject.trained@expectations$W$clinical_category) == "AML")
+rownames(MOFAobject.trained@expectations$W$clinical_category)[2] <- "Progress to AML"
+
+```
+
+
+
+```{r, theme that is used for plots}
+plot_themeFunc <- theme(axis.title.x = element_text(size = 5, family = "Helvetica", color = "black"), 
+                        axis.title.y = element_text(size = 5, family = "Helvetica", color = "black"),
+                        axis.text.y = element_text(size = 5, family = "Helvetica", color = "black"),
+                        axis.text.x =  element_text(size = 5, family = "Helvetica", color = "black"), 
+                        #axis.ticks.y = element_blank(), axis.ticks.x = element_line(), 
+                        legend.position = "top", legend.title = element_blank(), 
+                        legend.text = element_text(size = 5, color = "black"), 
+                        legend.key = element_rect(fill = "transparent"), 
+                        axis.line = element_line(colour = "black"), aspect.ratio = 1,
+                        panel.grid.major = element_blank(),
+                        panel.grid.minor = element_blank(),
+                        panel.border = element_blank(),
+                        panel.background = element_blank(),
+                        plot.margin = unit(c(0,0,0,0), "mm"))
+```
+
+
+# Variance Decomposition
+
+  This plot shows the percentage of variance explained by each factor across each data modality. It summarises the sources of variation from a complex heterogeneous data set in a single figure.
+
+```{r variance decomp plot, echo=F, fig.width= 10}
+plot_variance_explained(MOFAobject.trained, max_r2=60,
+                        y = "view", x = "factor", factors = 1:15)  + 
+  theme(axis.title.x = element_text(size = 5, family = "Helvetica", color = "black"), 
+                        axis.title.y = element_text(size = 5, family = "Helvetica", color = "black"),
+                        axis.text.y = element_text(size = 5, family = "Helvetica", color = "black"),
+                        axis.text.x =  element_text(size = 5, family = "Helvetica", color = "black"), 
+                        #axis.ticks.y = element_blank(), axis.ticks.x = element_line(), 
+                        legend.position = "none", legend.title = element_text(size = 7, family = "Helvetica", color = "black"), 
+                        legend.text = element_text(size = 7, color = "black"), 
+                        legend.key.size = unit(3, "mm"), 
+                        #axis.line = element_line(colour = "black"), aspect.ratio = 1,
+                        panel.grid.major = element_blank(),
+                        panel.grid.minor = element_blank(),
+                        panel.border = element_blank(),
+                        panel.background = element_blank(),
+                        plot.margin = unit(c(0,0,0,0), "mm")) 
+ggsave("../figures/New_figures_2024/variance_decomp_bmmnc.pdf", width = 80, height = 45, units = "mm", dpi = 300)
+```
+
+
+## Total variance explained per view 
+
+```{r total varExplained, echo=F, fig.width= 9}
+plot_variance_explained(MOFAobject.trained, plot_total = T)[[2]] + 
+  theme(axis.title.x = element_text(size = 7, family = "Helvetica", color = "black"), 
+                        axis.title.y = element_text(size = 7, family = "Helvetica", color = "black"),
+                        axis.text.y = element_text(size = 7, family = "Helvetica", color = "black"),
+                        axis.text.x =  element_text(size = 7, family = "Helvetica", color = "black"), 
+                        panel.grid.major = element_blank(),
+                        panel.grid.minor = element_blank(),
+                        panel.border = element_blank(),
+                        panel.background = element_blank(),
+                        plot.margin = unit(c(0,0,0,0), "mm")) + coord_flip()
+ggsave("../figures/New_figures_2024/total_variance_bmmnc.pdf", width = 60, height = 60, units = "mm", dpi = 300)
+```
+
+
+# Plot Factor Values
+
+```{r samples in latent space, echo=F}
+plot_factor(MOFAobject.trained,
+            factors = 1:10, legend = T,
+            #color_by = 
+            ) 
+
+```
+
+# Plot feature weights 
+
+## Plot weights for TE for Factors that are active in TE
+```{r feature weights, echo=FALSE, fig.width=10, fig.show='hold', out.width="30%"}
+plot_top_weights(MOFAobject.trained,
+                 view = "TE",
+                 factors = 1,
+                 nfeatures = 20,
+                 scale = T) + plot_themeFunc + labs(y = "Absolute loading on Factor 1", title = "", x = "") + facet_grid(cols = NULL)
+plot_top_weights(MOFAobject.trained,
+                 view = "TE",
+                 factors = 5,
+                 nfeatures = 20,
+                 scale = T) + plot_themeFunc + labs(y = "Absolute loading on Factor 5", title = "", x = "") + facet_grid(cols = NULL)
+
+plot_top_weights(MOFAobject.trained,
+                      view = "TE",
+                      factors = 9,
+                      nfeatures = 6,
+                      scale = T) + plot_themeFunc + labs(y = "Absolute loading on Factor 9", title = "", x = "") + facet_grid(cols = NULL)
+
+
+
+```
+
+SINE:Alu has a positive weight; this means that samples with positive Factor 1 values have SINE:Alu, whereas samples with negative Factor 1 values have lesser SINE:Alu. To confirm this, plot the Factor values and colour
+
+```{r plot factor vs features, echo=FALSE}
+plot_factor(MOFAobject.trained,
+            factors = 1, 
+            color_by = "SINE:Alu"
+            )
+
+```
+
+## Plot weights for gene-signature categories for Factors 
+
+### Aging weights
+
+```{r  , echo=F, fig.width= 10, fig.show='hold', out.width="30%", out.height="30%"}
+plot_top_weights(MOFAobject.trained,
+                 view = "Aging",
+                 factors = 1,
+                 nfeatures = 20, scale = T, abs = F) + plot_themeFunc + labs(y = "Absolute loading on Factor 1", title = "", x = "") + facet_grid(cols = NULL)
+plot_top_weights(MOFAobject.trained,
+                 view = "Aging",
+                 factors = 2,
+                 nfeatures = 20, scale = T, abs = F) + plot_themeFunc + labs(y = "Absolute loading on Factor 2", title = "", x = "") + facet_grid(cols = NULL)
+plot_top_weights(MOFAobject.trained,
+                 view = "Aging",
+                 factors = 3,
+                 nfeatures = 20, scale = T, abs = F) + plot_themeFunc + labs(y = "Absolute loading on Factor 3", title = "", x = "") + facet_grid(cols = NULL)
+plot_top_weights(MOFAobject.trained,
+                 view = "Aging",
+                 factors = 4,
+                 nfeatures = 20, scale = T, abs = F) + plot_themeFunc + labs(y = "Absolute loading on Factor 4", title = "", x = "") + facet_grid(cols = NULL)
+plot_top_weights(MOFAobject.trained,
+                 view = "Aging",
+                 factors = 6,
+                 nfeatures = 20, scale = T, abs = F) + plot_themeFunc + labs(y = "Absolute loading on Factor 6", title = "", x = "") + facet_grid(cols = NULL)
+
+```
+
+Aging_inflammatory cytokines had largest weight in Factor 2, Aging_Inflammaging and Aging_Inflammatory chemokines had slightly larger weight in Factor 3.
+
+
+### Cellular weights
+
+```{r  , echo=F, fig.width= 10, fig.show='hold', out.width="30%"}
+plot_top_weights(MOFAobject.trained,
+                 view = "Cellular",
+                 factors = 1,
+                 nfeatures = 20, scale = T) + plot_themeFunc + labs(y = "Absolute loading on Factor 1", title = "", x = "") + facet_grid(cols = NULL)
+plot_top_weights(MOFAobject.trained,
+                 view = "Cellular",
+                 factors = 3,
+                 nfeatures = 20, scale = T) + plot_themeFunc + labs(y = "Absolute loading on Factor 3", title = "", x = "") + facet_grid(cols = NULL)
+plot_top_weights(MOFAobject.trained,
+                 view = "Cellular",
+                 factors = 4,
+                 nfeatures = 20, scale = T) + plot_themeFunc + labs(y = "Absolute loading on Factor 4", title = "", x = "") + facet_grid(cols = NULL)
+plot_top_weights(MOFAobject.trained,
+                 view = "Cellular",
+                 factors = 7,
+                 nfeatures = 20, scale = T) + plot_themeFunc + labs(y = "Absolute loading on Factor 7", title = "", x = "") + facet_grid(cols = NULL)
+plot_top_weights(MOFAobject.trained,
+                 view = "Cellular",
+                 factors = 8,
+                 nfeatures = 20, scale = T) + plot_themeFunc + labs(y = "Absolute loading on Factor 8", title = "", x = "") + facet_grid(cols = NULL)
+```
+
+### Immunology weights
+
+```{r  , echo=F, fig.width= 10, fig.show='hold', out.width="30%", out.height="30%"}
+plot_top_weights(MOFAobject.trained,
+                 view = "Immunology",
+                 factors = 1,
+                 nfeatures = 20, scale = T) + plot_themeFunc + labs(y = "Absolute loading on Factor 1", title = "", x = "") + facet_grid(cols = NULL)
+plot_top_weights(MOFAobject.trained,
+                 view = "Immunology",
+                 factors = 3,
+                 nfeatures = 20, scale = T) + plot_themeFunc + labs(y = "Absolute loading on Factor 3", title = "", x = "") + facet_grid(cols = NULL)
+plot_top_weights(MOFAobject.trained,
+                 view = "Immunology",
+                 factors = 4,
+                 nfeatures = 20, scale = T) + plot_themeFunc + labs(y = "Absolute loading on Factor 4", title = "", x = "") + facet_grid(cols = NULL)
+plot_top_weights(MOFAobject.trained,
+                 view = "Immunology",
+                 factors = 6,
+                 nfeatures = 20, scale = T) + plot_themeFunc + labs(y = "Absolute loading on Factor 6", title = "", x = "") + facet_grid(cols = NULL)
+plot_top_weights(MOFAobject.trained,
+                 view = "Immunology",
+                 factors = 7,
+                 nfeatures = 20, scale = T) + plot_themeFunc + labs(y = "Absolute loading on Factor 7", title = "", x = "") + facet_grid(cols = NULL)
+plot_top_weights(MOFAobject.trained,
+                 view = "Immunology",
+                 factors = 8,
+                 nfeatures = 20, scale = T) + plot_themeFunc + labs(y = "Absolute loading on Factor 8", title = "", x = "") + facet_grid(cols = NULL)
+
+
+```
+
+## Plot weights for mutation
+
+
+```{r mut weights, echo=F, fig.width= 10}
+plot_top_weights(MOFAobject.trained,
+                 view = "mutation",
+                 factors = 6,
+                 nfeatures = 20) + plot_themeFunc + labs(y = "Absolute loading on Factor 6", title = "", x = "") + facet_grid(cols = NULL)
+plot_top_weights(MOFAobject.trained,
+                 view = "mutation",
+                 factors = 7,
+                 nfeatures = 20) + plot_themeFunc + labs(y = "Absolute loading on Factor 7", title = "", x = "") + facet_grid(cols = NULL)
+```
+
+
+
+```{r, echo=FALSE,  fig.show='hold', out.width= "50%"}
+my_comparisons <- list(c("0", "1"))
+plot_factor(MOFAobject.trained,
+            factors = 6, 
+            color_by = "SF3B1", add_boxplot = T, dodge = T) 
+
+plot_factor(MOFAobject.trained,
+            factors = 6, 
+            color_by = "SRSF2", add_boxplot = T, dodge = T)
+
+```
+
+
+
+## Plot weights for clinical category
+
+```{r, echo=F, fig.width= 10}
+plot_top_weights(MOFAobject.trained,
+                 view = "clinical_category",
+                 factors = 2,
+                 nfeatures = 20) + plot_themeFunc + labs(y = "Absolute loading on Factor 2", title = "", x = "") + facet_grid(cols = NULL)
+plot_top_weights(MOFAobject.trained,
+                 view = "clinical_category",
+                 factors = 4,
+                 nfeatures = 20) + plot_themeFunc + labs(y = "Absolute loading on Factor 4", title = "", x = "") + facet_grid(cols = NULL)
+plot_top_weights(MOFAobject.trained,
+                 view = "clinical_category",
+                 factors = 6,
+                 nfeatures = 20) + plot_themeFunc + labs(y = "Absolute loading on Factor 6", title = "", x = "") + facet_grid(cols = NULL)
+
+```
+
+In Factor 4, AML clearly had larger weight than Sex, so plotted Factor 5 coloured by AML status in the input data. 
+
+```{r, echo=FALSE,  fig.show='hold', out.width= "50%"}
+
+plot_factor(MOFAobject.trained,
+            factors = 4, 
+            color_by = "AML",
+            add_boxplot = T, dodge = T)
+
+plot_factor(MOFAobject.trained,
+            factors = 4, 
+            color_by = "AML",
+            shape_by = "Sex"
+            #add_violin = T, dodge = T
+            )
+
+```
+
+
+# Plot important features for each Factors
+The important features within each view were defined as having absolute weights over 0.5 for each factor separately.
+
+```{r, Heatmap for important weigts in for all factors}
+weights_longdf <- get_weights(MOFAobject.trained, as.data.frame = T)
+significants <- weights_longdf[abs(weights_longdf$value) > 0.5,]
+
+factors_weights_notscaled <- rbind(MOFAobject.trained@expectations$W$TE, 
+                MOFAobject.trained@expectations$W$Immunology,
+                MOFAobject.trained@expectations$W$Cellular,
+                MOFAobject.trained@expectations$W$Aging,
+                MOFAobject.trained@expectations$W$clinical_numeric,
+                MOFAobject.trained@expectations$W$mutation,
+                MOFAobject.trained@expectations$W$clinical_category)
+
+
+fac1 <- factors_weights_notscaled[c(as.vector(significants$feature)),]
+fac1 <- fac1[!duplicated(fac1),]
+
+import_feat <- as.data.frame(fac1)
+import_feat$views <- MOFAobject.trained@features_metadata$view[match(rownames(fac1),MOFAobject.trained@features_metadata$feature)]
+
+
+
+colnames(fac1) <- gsub("Factor", "", colnames(fac1))
+col = list(views = c("Aging" = "#F39200FF",
+                       "Cellular" = "#EFD500FF",
+                       "clinical_category" = "#007B3DFF",
+                       "Immunology" = "#31B7BCFF",
+                       #"mutation" = "#95C11FFF",
+                       "TE" = "#6F286AFF"))
+
+# Create the heatmap annotation
+ha <- HeatmapAnnotation(
+  views = import_feat$views, col = col, which = "row", show_legend = T, show_annotation_name = F,
+  annotation_legend_param =  list(title = "Views", title_gp = gpar(fontsize = 5, family= "Helvetica"),
+                                  labels = c("Aging", 
+                                             "Cellular", 
+                                             "Clinical", 
+                                             #"Mutation", 
+                                             "Immunology", 
+                                             "TE"),
+                                  labels_gp = gpar(fontsize = 5, family= "Helvetica"), grid_height = unit(2.8, "mm"),
+                                  grid_width = unit(2.8, "mm"))
+)
+
+
+library(circlize)
+f2 = colorRamp2(c(-2, 0, 2), c("#0000FFFF", "#FFFFFFFF", "#FF0000FF"), space = "RGB")
+
+H <- Heatmap(fac1,
+             name = "weights", 
+             color_space = "RGB",
+             #col = f2,
+             row_order = rownames(fac1)[order(rownames(fac1))],
+             show_heatmap_legend = T,
+             heatmap_legend_param = list(
+               title = "Weights", title_gp = gpar(fontsize = 5, family= "Helvetica"),
+               labels_gp = gpar(fontsize = 5, family= "Helvetica"), grid_height = unit(2.8, "mm"),
+               grid_width = unit(2.8, "mm")),
+             split = import_feat$views,
+             row_gap = unit(0.001, "mm"),
+             right_annotation = ha,
+             cluster_columns = F,
+             show_column_dend = F,
+             show_row_dend = F,
+             row_title = NULL,
+             row_names_gp = gpar(fontsize = 5, fontfamily = "Helvetica"),
+             column_names_gp = gpar(fontsize = 5, fontfamily = "Helvetica"),
+             column_names_rot = 360,
+             column_names_centered = T,
+             column_title = "Factors",
+             column_title_side = "bottom",
+             column_title_gp = gpar(fontsize = 5, fontfamily = "Helvetica")
+             
+)
+
+draw(H)
+  
+
+
+
+```
+
+
+# Characterisation of Factor 1
+
+Based on the feature weights in Factor 1, Cellular gene-signature was used in the plots with SINE:Alu (largest weighted feature in TE for Factor 1). Scatterplots of Factor 1 values (x-axis) versus expression values (y-axis) for the top 4 TE with largest positive and negative weight respectively. Samples are coloured by Cellular_Decomposition_GMP status:
+
+
+
+```{r, echo=F, fig.show='hold', out.height="50%"}
+plot_data_scatter(MOFAobject.trained,
+                  view = "TE",
+                  factor = 1,
+                  features = 2,
+                  sign = "positive", dot_size = 1, alpha = 0.7, text_size = 3) + plot_themeFunc 
+plot_data_scatter(MOFAobject.trained,
+                  view = "TE",
+                  factor = 1,
+                  features = 2,
+                  sign = "negative", dot_size = 1, alpha = 0.7, text_size = 3) + plot_themeFunc 
+```
+
+
+```{r, echo=F, fig.show='hold', out.height="50%"}
+plot_data_scatter(MOFAobject.trained,
+                  view = "Cellular",
+                  factor = 1,
+                  features = 2,
+                  sign = "positive", dot_size = 1, alpha = 0.7, text_size = 3) + plot_themeFunc 
+plot_data_scatter(MOFAobject.trained,
+                  view = "Cellular",
+                  factor = 1,
+                  features = 2,
+                  sign = "negative", dot_size = 1, alpha = 0.7, text_size = 3) + plot_themeFunc 
+```
+
+```{r, echo=F, fig.show='hold', out.height="50%"}
+plot_data_scatter(MOFAobject.trained,
+                  view = "Immunology",
+                  factor = 1,
+                  features = 2,
+                  sign = "positive", dot_size = 1, alpha = 0.7, text_size = 3) + plot_themeFunc 
+plot_data_scatter(MOFAobject.trained,
+                  view = "Immunology",
+                  factor = 1,
+                  features = 2,
+                  sign = "negative", dot_size = 1, alpha = 0.7, text_size = 3) + plot_themeFunc 
+```
+
+
+
+## Important features for Factor 1
+
+```{r, echo=F, message=FALSE, fig.width=8, fig.height=10}
+weight_df <- do.call(rbind, get_weights(MOFAobject.trained, factors = 1, 
+                                  as.data.frame = FALSE, scale = T))
+
+tmp1 <- rownames(weight_df)[abs(weight_df[,1]) > 0.5]
+
+```
+
+```{r, echo=F, fig.width=13, fig.height=10, out.width="50%"}
+
+agin1 <- MOFAobject.trained@data$Aging$group1[rownames(MOFAobject.trained@data$Aging$group1) %in% tmp1,]
+im1 <- MOFAobject.trained@data$Immunology$group1[rownames(MOFAobject.trained@data$Immunology$group1) %in% tmp1,]
+cel1 <- MOFAobject.trained@data$Cellular$group1[rownames(MOFAobject.trained@data$Cellular$group1) %in% tmp1,]
+te1 <- MOFAobject.trained@data$TE$group1[rownames(MOFAobject.trained@data$TE$group1) %in% tmp1,]
+
+
+f1 <- rbind(agin1, im1, cel1, te1)
+rownames(f1)[1] <-"Immunosenescence"
+rownames(f1)[10] <- "SINE:Alu"
+
+f1_df <- as.data.frame(f1)
+f1_df$views <- MOFAobject.trained@features_metadata$view[match(rownames(f1),MOFAobject.trained@features_metadata$feature)]
+f1_df <- as.data.frame(f1)
+f1_df$views <- MOFAobject.trained@features_metadata$view[match(rownames(f1),MOFAobject.trained@features_metadata$feature)]
+
+col = list(views = c("Aging" = "#F39200FF", 
+                     "Cellular" = "#EFD500FF", 
+                     #"clinical_category" = "#007B3DFF",
+                     "Immunology" = "#31B7BCFF",
+                     #"mutation" = "#95C11FFF",
+                     "TE" = "#6F286AFF") )
+# Create the heatmap annotation
+ha <- HeatmapAnnotation(
+  views = f1_df$views, col = col, which = "row", show_legend = F, show_annotation_name = F,
+  annotation_legend_param =  list(title = "Views", title_gp = gpar(fontsize = 5, family= "Helvetica"),
+                                  labels = c("Aging", "Cellular", 'Immunology', "RTEs"),
+                                  simple_anno_size = unit(0.8, "mm"),
+                                  #simple_anno_size_adjust = T,
+                                  labels_gp = gpar(fontsize = 5, family= "Helvetica"), grid_height = unit(2.8, "mm"),
+                                  grid_width = unit(2.8, "mm"))
+)
+
+fac1n <- MOFAobject.trained@expectations$Z$group1[,1]
+fac1n <- sort(fac1n)
+fac1n <- as.data.frame(fac1n)
+
+#col_fun = colorRamp2(c(min(fac1$fac1), median(fac1$fac1), max(fac1$fac1)), c("blue", "white", "red"))
+col_fun = colorRamp2(c(-2, 0, 2), c("blue", "white", "red"))
+
+col_ha <- HeatmapAnnotation(Factor1= fac1n$fac1, col = list(Factor1 = col_fun), which = "col", show_legend = F,show_annotation_name = T,
+                            annotation_name_gp = gpar(fontsize = 5, family= "Helvetica"),
+                            simple_anno_size = unit(2, "mm"),
+                            simple_anno_size_adjust = T, 
+                            #width = unit(0.8, "mm"),
+                            annotation_legend_param =  list(title = "Factor1", 
+                                                            title_gp = gpar(fontsize = 5, family= "Helvetica"),
+                                                            labels_gp = gpar(fontsize = 5, family= "Helvetica"),
+                                                            grid_height = unit(2, "mm"), #legend_direction = "horizontal",
+                                                            grid_width = unit(2, "mm")))
+
+f1Hd <- Heatmap(f1[,rownames(fac1n)],
+                row_order = rownames(f1)[order(rownames(f1))],
+                col = col_fun,
+                show_heatmap_legend = F,
+                heatmap_legend_param = list(
+                  title = "Weights", title_gp = gpar(fontsize = 5, family= "Helvetica"),
+                  labels_gp = gpar(fontsize = 5, family= "Helvetica"), grid_height = unit(2.8, "mm"),
+                  grid_width = unit(2.8, "mm")
+                  #legend_height = 2, legend_width = 0.5
+                ),
+                split = f1_df$views,
+                bottom_annotation = col_ha,
+                color_space = "RGB",
+                row_gap = unit(0.01, "mm"),
+                right_annotation = ha,
+                cluster_columns = F,
+                show_column_dend = F,
+                show_row_dend = F,
+                row_title = NULL,
+                row_names_gp = gpar(fontsize = 5, fontfamily = "Helvetica"),
+                show_column_names = F,
+                width = unit(57, "mm")
+)
+
+pdf("../figures/New_figures_2024/Factor1_Heatmap_disc.pdf", width = 3.46457, height = 2.51969, onefile = T)
+draw(f1Hd) 
+dev.off()
+
+```
+
+
+# Characterisation of Factor 4
+
+```{r, echo=F, fig.show='hold', out.height="50%"}
+plot_data_scatter(MOFAobject.trained,
+                  view = "Immunology",
+                  factor = 4,
+                  features = 4,
+                  sign = "positive", dot_size = 1, alpha = 0.7, text_size = 3) + plot_themeFunc
+plot_data_scatter(MOFAobject.trained,
+                  view = "Immunology",
+                  factor = 4,
+                  features = 4,
+                  sign = "negative", dot_size = 1, alpha = 0.7, text_size = 3) + plot_themeFunc
+```
+
+```{r, echo=F, fig.show='hold', out.height="50%"}
+plot_data_scatter(MOFAobject.trained,
+                  view = "Cellular",
+                  factor = 4,
+                  features = 4,
+                  sign = "positive", dot_size = 1, alpha = 0.7, text_size = 3) + plot_themeFunc
+plot_data_scatter(MOFAobject.trained,
+                  view = "Cellular",
+                  factor = 4,
+                  features = 4,
+                  sign = "negative", dot_size = 1, alpha = 0.7, text_size = 3) + plot_themeFunc
+```
+
+
+
+# Prediction of clinical outcome
+In Cox proportional hazards model, hazard of an event occurring (death/treatment) as a function of some covariates (here the factors). If a factor has a influence on the survival time or Days it will receive a high absolute coefficient in the Cox model.
+
+  + If the coefficient is positive, samples with large factor values have an increased hazard compared the samples with small factor values.
+  + If the coefficient is negative, samples with small factor values have an increased hazard compared the samples with large factor values.
+
+## Overall Survival
+
+
+```{r survival analysis, echo=F, fig.width=8, fig.align='center'}
+SurvObject <- Surv(MOFAobject.trained@samples_metadata$OS,
+                   MOFAobject.trained@samples_metadata$Event)
+Z <- get_factors(MOFAobject.trained)[[1]]
+# coxph------------
+fit <- coxph(SurvObject ~ Z)
+# fit
+
+# plot HR
+s <- summary(fit)
+coef <- s[["coefficients"]]
+
+
+df_cox <- data.frame(
+  factor = factor(rownames(coef), levels = rev(rownames(coef))),
+  p      = round(coef[,"Pr(>|z|)"], 4),
+  coef   = coef[,"exp(coef)"],
+  lower  = s[["conf.int"]][,"lower .95"],
+  higher = s[["conf.int"]][,"upper .95"]
+)
+
+ggplot(df_cox, aes(x=factor, y=coef, ymin=lower, ymax=higher)) +
+  #stat_pvalue_manual(label = "p") +
+  geom_pointrange( col='#619CFF') +
+  coord_flip() +
+  scale_x_discrete() +
+  labs(y="Hazard Ratio", x="") +
+  geom_hline(aes(yintercept=1), linetype="dotted") +
+  theme_bw() +
+  geom_text(aes(y = 3.1, label = p), data = df_cox, size = 3)
+
+
+# finalfit----
+df <- cbind(MOFAobject.trained@samples_metadata, Z)
+df <- as.data.frame(df)
+factors <- c("Sex", "Age", "Factor1","Factor2","Factor3","Factor4","Factor5","Factor6","Factor7","Factor8","Factor9","Factor10")
+dependent_os <- "Surv(OS, Event)"
+knitr::kable(df %>% 
+  finalfit(dependent_os, factors, add_dependent_label = FALSE) %>% 
+    rename("Overall survival" = label) %>% 
+    rename(" " = levels) %>% 
+    rename("  " = all) 
+)
+```
+
+> Some factors were not significant in their KM curves. A Cox model accounts for an array of covariates, simultaneously allowing for multiple predictors. Intuitively, they can differ in the same way univariate and multivariate analyses do.
+
+### Kaplan-Meier plots for OS
+Samples split based on the factor values into two groups using the maximally selected rank statistics.
+
+
+
+```{r KM factor 2}
+Z <- get_factors(MOFAobject.trained)[[1]]
+# OS Fac 2 ----
+df <- data.frame(
+  time = MOFAobject.trained@samples_metadata$OS,
+  event = MOFAobject.trained@samples_metadata$Event, Z2 = Z[,2]
+)
+
+df$Factor2<- ifelse(df$Z2 > quantile(df$Z2)[4], "High", 
+                    ifelse(df$Z2 < quantile(df$Z2)[2], "Low", "Med")) 
+df$Factor2 <- factor(df$Factor2, levels = c("High", "Low", "Med"))
+
+fit <- survfit(Surv(time, event) ~ Factor2, df)
+
+
+# get low-high pval 
+lowhigh_df <- df %>% filter(df$Factor2 != "Med")
+km_infChem <- survfit(formula = Surv(time = as.numeric(lowhigh_df$time), event = as.numeric(lowhigh_df$event)) ~ lowhigh_df$Factor2,
+                      data = lowhigh_df)
+
+
+pokm2 <- ggsurvplot(fit, data = df,
+           conf.int = F, pval = paste0("High vs Low p=",round(survminer::surv_pvalue(km_infChem)$pval, 3)),
+           fun = function(y) y * 100,
+           legend = "top", xscale = "d_y", break.time.by=365.25*3,
+           legend.title = "Factor 2", size = 0.4, censor.size = 2.1,
+           palette = "npg", pval.size = 1.8, pval.coord = c(0, 5),
+           legend.labs = c(paste("High"), paste("Low"), paste("Med")), 
+           surv.plot.height = 0.3,
+           xlab = "Overall Survival (Years)", ylab="Survival probability (%)", title= "Factor 2")$plot
+pokm2 <- pokm2 + theme(axis.line = element_line(colour = "black"),
+               panel.grid.major = element_blank(),
+               panel.grid.minor = element_blank(),
+               panel.border = element_blank(),
+               panel.background = element_blank(),
+               #axis.ticks.x = element_blank(),
+               axis.text.x = element_text(size = 5, family = "Helvetica", color = "black"),
+               axis.text.y = element_text(size = 5, family = "Helvetica", color = "black"),
+               axis.title.x = element_text(size = 5, family = "Helvetica", color = "black"),
+               legend.position = "top", aspect.ratio = 1,
+               legend.title = element_text(size = 5, family = "Helvetica", color = "black"),
+               legend.text = element_text(size = 5, family = "Helvetica", color = "black"),
+               axis.title.y = element_text(size = 5, family = "Helvetica", color = "black"),
+               plot.title = element_text(size = 5, family = "Helvetica", color = "black", vjust = -3))
+print(pokm2)
+
+ggsave("../figures/New_figures_2024/KM_Factor2_discovery.pdf", pokm2, width = 58, height = 58 , units = "mm", dpi = 300)
+
+```
+
+
+
+
+```{r KM factor 9}
+# OS Fac 9 ----
+df <- data.frame(
+  time = MOFAobject.trained@samples_metadata$OS,
+  event = MOFAobject.trained@samples_metadata$Event, Z9 = Z[,9]
+)
+
+df$Factor9 <- ifelse(df$Z9 > quantile(df$Z9)[4], "High", 
+                     ifelse(df$Z9 < quantile(df$Z9)[2], "Low", "Med")) # cut$cutpoint$cutpoint
+df$Factor9 <- factor(df$Factor9, levels = c("High", "Low", "Med"))
+
+fit <- survfit(Surv(time, event) ~ Factor9, df)
+
+# get low-high pval 
+lowhigh_df <- df %>% filter(df$Factor9 != "Med")
+km_infChem <- survfit(formula = Surv(time = as.numeric(lowhigh_df$time), 
+                                     event = as.numeric(lowhigh_df$event)) ~ lowhigh_df$Factor9,
+                      data = lowhigh_df)
+
+
+pokm9 <- ggsurvplot(fit, data = df,
+                    conf.int = F, pval = paste0("High vs Low p=",round(survminer::surv_pvalue(km_infChem)$pval, 3)),
+                    fun = function(y) y * 100,
+                    legend = "top", xscale = "d_y", break.time.by=365.25*3, 
+                legend.title = "Factor 9", size = 0.4, censor.size = 2.1,
+                palette = "npg", pval.size = 1.8, pval.coord = c(0, 5),
+                legend.labs = c(paste("High"), paste("Low"), paste("Med")), 
+                surv.plot.height = 0.3,
+                xlab = "Overall Survival (Years)", ylab="Survival probability (%)", title= "Factor 9")$plot
+pokm9 <- pokm9 + theme(axis.line = element_line(colour = "black"),
+               panel.grid.major = element_blank(),
+               panel.grid.minor = element_blank(),
+               panel.border = element_blank(),
+               panel.background = element_blank(),
+               #axis.ticks.x = element_blank(),
+               axis.text.x = element_text(size = 5, family = "Helvetica", color = "black"),
+               axis.text.y = element_text(size = 5, family = "Helvetica", color = "black"),
+               axis.title.x = element_text(size = 5, family = "Helvetica", color = "black"),
+               legend.position = "top", aspect.ratio = 1,
+               legend.title = element_text(size = 5, family = "Helvetica", color = "black"),
+               legend.text = element_text(size = 5, family = "Helvetica", color = "black"),
+               axis.title.y = element_text(size = 5, family = "Helvetica", color = "black"),
+               plot.title = element_text(size = 5, family = "Helvetica", color = "black", vjust = -3))
+
+print(pokm9)
+
+ggsave("../figures/New_figures_2024/KM_Factor9_discovery.pdf", pokm9, width = 58, height = 58 , units = "mm", dpi = 300)
+
+
+
+
+```
+
+
+
+## Event-free Survival
+
+
+```{r efs survival analysis, echo=F, fig.width=8, fig.align='center'}
+SurvObject <- Surv(MOFAobject.trained@samples_metadata$EFS,
+                   MOFAobject.trained@samples_metadata$Event)
+Z <- get_factors(MOFAobject.trained)[[1]]
+fit_efs <- coxph(SurvObject ~ Z)
+#fit_efs
+
+# plot HR
+s_efs <- summary(fit_efs)
+coef_efs <- s_efs[["coefficients"]]
+
+df_cox_efs <- data.frame(
+  factor = factor(rownames(coef_efs), levels = rev(rownames(coef_efs))),
+  p      = round(coef_efs[,"Pr(>|z|)"], 4),
+  coef   = coef_efs[,"exp(coef)"],
+  lower  = s_efs[["conf.int"]][,"lower .95"],
+  higher = s_efs[["conf.int"]][,"upper .95"]
+)
+
+ggplot(df_cox_efs, aes(x=factor, y=coef, ymin=lower, ymax=higher)) +
+  #stat_pvalue_manual(label = "p") +
+  geom_pointrange( col='#619CFF') +
+  coord_flip() +
+  scale_x_discrete() +
+  labs(y="Hazard Ratio", x="") +
+  geom_hline(aes(yintercept=1), linetype="dotted") +
+  theme_bw() +
+  geom_text(aes(y = 7.5, label = p), data = df_cox_efs, size = 3)
+
+# finalfit----
+df <- cbind(MOFAobject.trained@samples_metadata, Z)
+factors <- c("Sex", "Age", "Factor1","Factor2","Factor3","Factor4","Factor5","Factor6","Factor7","Factor8","Factor9","Factor10")
+dependent_efs <- "Surv(EFS, Event)"
+knitr::kable(df %>% 
+  finalfit(dependent_efs, factors, add_dependent_label = FALSE) %>% 
+    rename("Event Free Survival" = label) %>% 
+    rename(" " = levels) %>% 
+    rename("  " = all) 
+)
+
+```
+
+
+
+### Kaplan-Meier plots for EFS
+
+Samples split based on the factor values into two groups using the maximally selected rank statistics and the KM plots for EFS were plotted. Feature weights were plotted based on their variance sources. 
+
+
+KM for Factor 2:
+
+```{r efs KM factor 2, echo=F }
+# EFS Fac2 ------
+df <- data.frame(
+  time = MOFAobject.trained@samples_metadata$EFS,
+  event = MOFAobject.trained@samples_metadata$Event, Z2 = Z[,2]
+)
+
+df$Factor2 <- ifelse(df$Z2 > quantile(df$Z2)[4], "High", 
+                     ifelse(df$Z2 < quantile(df$Z2)[2], "Low", "Med")) # cut$cutpoint$cutpoint
+df$Factor2 <- factor(df$Factor2, levels = c("High", "Low", "Med"))
+
+fit <- survfit(Surv(time, event) ~ Factor2, df)
+
+# get low-high pval 
+lowhigh_df <- df %>% filter(df$Factor2 != "Med")
+km_infChem <- survfit(formula = Surv(time = as.numeric(lowhigh_df$time), 
+                                     event = as.numeric(lowhigh_df$event)) ~ lowhigh_df$Factor2,
+                      data = lowhigh_df)
+
+pekm2 <- ggsurvplot(fit, data = df,
+                conf.int = F, pval = paste0("High vs Low p=",round(survminer::surv_pvalue(km_infChem)$pval, 3)),
+                fun = function(y) y * 100,
+                legend = "top", xscale = "d_y", break.time.by=365.25*3,
+                legend.title = "", size = 0.4, censor.size = 2.1,
+                palette = "npg", pval.size = 1.8, pval.coord = c(0, 5),
+                legend.labs = c(paste("High"), paste("Low"), paste("Med")), 
+                surv.plot.height = 0.3,
+                xlab = "Event Free Survival (Years)", ylab="Survival probability (%)", title= "Factor 2")$plot
+pekm2 <- pekm2 + theme(axis.line = element_line(colour = "black"),
+               panel.grid.major = element_blank(),
+               panel.grid.minor = element_blank(),
+               panel.border = element_blank(),
+               panel.background = element_blank(),
+               #axis.ticks.x = element_blank(),
+               axis.text.x = element_text(size = 5, family = "Helvetica", color = "black"),
+               axis.text.y = element_text(size = 5, family = "Helvetica", color = "black"),
+               axis.title.x = element_text(size = 5, family = "Helvetica", color = "black"),
+               legend.position = "top", aspect.ratio = 1,
+               legend.text = element_text(size = 5, family = "Helvetica", color = "black"),
+               axis.title.y = element_text(size = 5, family = "Helvetica", color = "black"),
+               plot.title = element_text(size = 5, family = "Helvetica", color = "black", vjust = -3))
+print(pekm2)
+
+ggsave("../figures/New_figures_2024/KM_EFS_Factor2_discovery.pdf", pekm2, width = 58, height = 58 , units = "mm", dpi = 300)
+
+
+```
+
+KM for Factor 4:
+
+```{r efs KM factor 4 }
+# EFS Fac4 -------
+df <- data.frame(
+  time = MOFAobject.trained@samples_metadata$EFS,
+  event = MOFAobject.trained@samples_metadata$Event, Z4 = Z[,4]
+)
+
+df$Factor4 <- ifelse(df$Z4 > quantile(df$Z4)[4], "High", 
+                     ifelse(df$Z4 < quantile(df$Z4)[2], "Low", "Med")) # cut$cutpoint$cutpoint
+df$Factor4 <- factor(df$Factor4, levels = c("High", "Low", "Med"))
+
+fit <- survfit(Surv(time, event) ~ Factor4, df)
+
+# get low-high pval 
+lowhigh_df <- df %>% filter(df$Factor4 != "Med")
+km_infChem <- survfit(formula = Surv(time = as.numeric(lowhigh_df$time), 
+                                     event = as.numeric(lowhigh_df$event)) ~ lowhigh_df$Factor4,
+                      data = lowhigh_df)
+
+pekm4 <- ggsurvplot(fit, data = df,
+                    conf.int = F, pval = paste0("p=",round(survminer::surv_pvalue(km_infChem)$pval, 3)),
+                    fun = function(y) y * 100,                    
+                    legend = "none", xscale = "d_y", break.time.by=365.25*3,
+                    legend.title = "Factor4", size = 0.4, censor.size = 2.1,
+                    palette = "npg", pval.size = 1.8, pval.coord = c(0.5, 10),
+                    legend.labs = c(paste("High"), paste("Low"), paste("Med")), 
+                    surv.plot.height = 0.3,
+                    xlab = "Event Free Survival (Years)", ylab="Survival probability (%)", title= "Factor 4")$plot
+pekm4 <- pekm4 + theme(axis.line = element_line(colour = "black"),
+                       panel.grid.major = element_blank(),
+                       panel.grid.minor = element_blank(),
+                       panel.border = element_blank(),
+                       panel.background = element_blank(),
+                       #axis.ticks.x = element_blank(),
+                       axis.text.x = element_text(size = 5, family = "Helvetica", color = "black"),
+                       axis.text.y = element_text(size = 5, family = "Helvetica", color = "black"),
+                       axis.title.x = element_text(size = 5, family = "Helvetica", color = "black"),
+                       legend.position = "none", aspect.ratio = 1,
+                       legend.text = element_text(size = 5, family = "Helvetica", color = "black"),
+                       legend.title = element_text(size = 5, family = "Helvetica", color = "black"),
+                       axis.title.y = element_text(size = 5, family = "Helvetica", color = "black"),
+                       plot.title = element_text(size = 5, family = "Helvetica", color = "black", vjust = -3))
+print(pekm4)
+
+ggsave("../figures/New_figures_2024/KM_EFS_Factor4_discovery.pdf", pekm4, width = 44, height = 44 , units = "mm", dpi = 300)
+
+
+
+```
+
+
+KM for Factor 9:
+
+```{r efs KM factor 9}
+# EFS Fac9 -------
+df <- data.frame(
+  time = MOFAobject.trained@samples_metadata$EFS,
+  event = MOFAobject.trained@samples_metadata$Event, Z9 = Z[,9]
+)
+
+df$Factor9 <- ifelse(df$Z9 > quantile(df$Z9)[4], "High", 
+                     ifelse(df$Z9 < quantile(df$Z9)[2], "Low", "Med")) # cut$cutpoint$cutpoint
+df$Factor9 <- factor(df$Factor9, levels = c("High", "Low", "Med"))
+
+fit <- survfit(Surv(time, event) ~ Factor9, df)
+
+# get low-high pval 
+lowhigh_df <- df %>% filter(df$Factor9 != "Med")
+km_infChem <- survfit(formula = Surv(time = as.numeric(lowhigh_df$time), 
+                                     event = as.numeric(lowhigh_df$event)) ~ lowhigh_df$Factor9,
+                      data = lowhigh_df)
+
+pekm9 <- ggsurvplot(fit, data = df,
+                conf.int = F, pval = paste0("High vs Low p=",round(survminer::surv_pvalue(km_infChem)$pval, 3)),
+                fun = function(y) y * 100,
+                legend = "top", xscale = "d_y", break.time.by=365.25*3,
+                legend.title = "", size = 0.4, censor.size = 2.1,
+                palette = "npg", pval.size = 1.8, pval.coord = c(0, 5),
+                legend.labs = c(paste("High"), paste("Low"), paste("Med")),  
+                surv.plot.height = 0.3,
+                xlab = "Event Free Survival (Years)", ylab="Survival probability (%)", title= "Factor 9")$plot
+pekm9 <- pekm9 + theme(axis.line = element_line(colour = "black"),
+               panel.grid.major = element_blank(),
+               panel.grid.minor = element_blank(),
+               panel.border = element_blank(),
+               panel.background = element_blank(),
+               #axis.ticks.x = element_blank(),
+               axis.text.x = element_text(size = 5, family = "Helvetica", color = "black"),
+               axis.text.y = element_text(size = 5, family = "Helvetica", color = "black"),
+               axis.title.x = element_text(size = 5, family = "Helvetica", color = "black"),
+               legend.position = "top", aspect.ratio = 1,
+               legend.text = element_text(size = 5, family = "Helvetica", color = "black"),
+               axis.title.y = element_text(size = 5, family = "Helvetica", color = "black"),
+               plot.title = element_text(size = 5, family = "Helvetica", color = "black", vjust = -3))
+print(pekm9)
+
+ggsave("../figures/New_figures_2024/KM_EFS_Factor9_discovery.pdf", pekm9, width = 58, height = 58 , units = "mm", dpi = 300)
+
+```
+
+
+# Gene Set Enrichment Analysis 
+```{r, echo=F, include=F}
+# GSEA on positive weights, with default options
+res.positive <- run_enrichment(MOFAobject.trained, 
+  feature.sets = binary_gene, 
+  view = "Aging",
+  sign = "positive"
+)
+
+# GSEA on negative weights, with default options
+res.negative <- run_enrichment(MOFAobject, 
+  feature.sets = reactomeGS, 
+  view = "mRNA",
+  sign = "negative"
+)
+
+factors <- as.data.frame(get_factors(MOFAobject.trained)[[1]])
+factors$Factor1_group <- ifelse(factors$Factor1 > quantile(factors$Factor1, prob = seq(0, 1, length = 11), type = 4)[8], "High",
+                                ifelse(factors$Factor1 < quantile(factors$Factor1, prob = seq(0, 1, length = 11), type = 4)[4], "Low", "Mid"))
+
+factors$Factor2_group <- ifelse(factors$Factor2 > quantile(factors$Factor2, prob = seq(0, 1, length = 11), type = 4)[8], "High",
+                                ifelse(factors$Factor2 < quantile(factors$Factor2, prob = seq(0, 1, length = 11), type = 4)[4], "Low", "Mid"))
+
+factors$Factor4_group <- ifelse(factors$Factor4 > quantile(factors$Factor4, prob = seq(0, 1, length = 11), type = 4)[8], "High",
+                                ifelse(factors$Factor4 < quantile(factors$Factor4, prob = seq(0, 1, length = 11), type = 4)[4], "Low", "Mid"))
+
+factors$Factor9_group <- ifelse(factors$Factor9 > quantile(factors$Factor9, prob = seq(0, 1, length = 11), type = 4)[8], "High",
+                                ifelse(factors$Factor9 < quantile(factors$Factor9, prob = seq(0, 1, length = 11), type = 4)[4], "Low", "Mid"))
+
+factors <- factors[,c(1,2,4,9, 11:14)]
+write.csv(factors, "Factor_groups_for_GSEA.csv")
+```
+
+```{r, echo=F, include=F}
+# GSEA on positive weights, with default options
+res.positive <- run_enrichment(MOFAobject.trained, 
+  feature.sets = binary_gene, 
+  view = "Aging",
+  sign = "positive"
+)
+
+# GSEA on negative weights, with default options
+res.negative <- run_enrichment(MOFAobject, 
+  feature.sets = reactomeGS, 
+  view = "mRNA",
+  sign = "negative"
+)
+
+factors <- as.data.frame(get_factors(MOFAobject.trained)[[1]])
+factors$Factor1_group <- ifelse(factors$Factor1 > quantile(factors$Factor1)[4], "High",
+                                ifelse(factors$Factor1 < quantile(factors$Factor1)[2], "Low", "Mid"))
+
+factors$Factor2_group <- ifelse(factors$Factor2 > quantile(factors$Factor2)[4], "High",
+                                ifelse(factors$Factor2 < quantile(factors$Factor2)[2], "Low", "Mid"))
+
+factors$Factor4_group <- ifelse(factors$Factor4 > quantile(factors$Factor4)[4], "High",
+                                ifelse(factors$Factor4 < quantile(factors$Factor4)[2], "Low", "Mid"))
+
+factors$Factor9_group <- ifelse(factors$Factor9 > quantile(factors$Factor9)[4], "High",
+                                ifelse(factors$Factor9 < quantile(factors$Factor9)[2], "Low", "Mid"))
+
+factors <- factors[,c(1,2,4,9, 11:14)]
+write.csv(factors, "Factor_groups_for_GSEA_25_75Q.csv")
+```
