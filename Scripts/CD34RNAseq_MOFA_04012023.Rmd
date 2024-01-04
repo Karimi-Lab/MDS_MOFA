@@ -1,0 +1,726 @@
+---
+title: "MOFA on CD34+ RNAse1 data GSE114922"
+date: "2023-06-30"
+output: 
+  html_document:
+    code_folding: hide
+    highlight: zenburn
+    number_sections: yes
+    theme: yeti
+    toc: yes
+---
+
+```{=html}
+<style type="text/css">
+.main-container {
+  max-width: 90%;
+  margin-left: 150px;
+  margin-right: auto;
+}
+</style>
+```
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r packages, echo=F, warning=F, include=F, message=F}
+library(MOFA2)
+library(MOFAdata)
+library(ggplot2)
+library(data.table)
+library(tidyverse)
+library(stringr)
+library(caret)
+library(survival)
+library(survminer)
+library(dynpred)
+library(dplyr)
+library(GGally)
+library(rhdf5)
+library(ComplexHeatmap)
+library(gridExtra)
+library(circlize)
+library(cowplot)
+library(finalfit)
+library(ggsci)
+```
+
+
+
+
+# CD34+ Data 
+
+```{r mofa object, echo=F, message=F, warning=F}
+# load hdf5 file of trained MOFA model 
+set.seed(111)
+MOFAvalidation.trained <- load_model("../data/MOFA_models/2102023_MOFA_without_antigens_on_validationCohort_GSE114922.hdf5")
+
+# MOFAobject <- create_mofa(matrices)
+plot_data_overview(MOFAvalidation.trained)
+
+```
+
+
+
+```{r add metadata, echo=F, include=F}
+# add metadata to model ------
+load("../data/GSE114922/GSE114922_clinical_df_newCat.Rda")
+
+#sum(MOFAvalidation.trained@dimensions$N)
+
+clinical_df <- as.data.frame(t(clinical_df))
+clinical_df$Status <- ifelse(clinical_df$Status == "DEAD", 1, 0)
+
+clinical_df$sample <- rownames(clinical_df)
+
+samples_metadata(MOFAvalidation.trained) <- clinical_df
+
+which(MOFAvalidation.trained@features_metadata$feature == "Immunology_APM loss") # 179 
+which(MOFAvalidation.trained@features_metadata$feature == "Immunology_Single-gene signatures") # 194
+which(MOFAvalidation.trained@features_metadata$feature == "Immunology_Inflammatory chemokines") # 185
+which(MOFAvalidation.trained@features_metadata$feature == "Aging_Inflammaging")
+which(MOFAvalidation.trained@features_metadata$feature == "Simple_repeat:Simple_repeat")
+
+MOFAvalidation.trained@features_metadata <- MOFAvalidation.trained@features_metadata[-c(45, 78, 108,123,114),]
+
+which(rownames(MOFAvalidation.trained@data$Aging$group1) == "Aging_Inflammaging") #17, 23 and 32
+which(rownames(MOFAvalidation.trained@data$TE$group1) == "Simple_repeat:Simple_repeat") #17, 23 and 32
+
+rownames(MOFAvalidation.trained@data$Immunology$group1) #17, 23 and 32
+MOFAvalidation.trained@data$Immunology$group1 <- MOFAvalidation.trained@data$Immunology$group1[-c(17,23,32),]
+MOFAvalidation.trained@data$Aging$group1 <- MOFAvalidation.trained@data$Aging$group1[-3,]
+MOFAvalidation.trained@data$TE$group1 <- MOFAvalidation.trained@data$TE$group1[-45,]
+
+
+rownames(MOFAvalidation.trained@expectations$W$Immunology)
+MOFAvalidation.trained@expectations$W$Immunology <- MOFAvalidation.trained@expectations$W$Immunology[-c(17, 23, 32),]
+MOFAvalidation.trained@expectations$W$Aging <- MOFAvalidation.trained@expectations$W$Aging[-3,]
+MOFAvalidation.trained@expectations$W$TE <- MOFAvalidation.trained@expectations$W$TE[-45,]
+
+# head(MOFAvalidation.trained@samples_metadata, n=3)
+MOFAvalidation.trained@features_metadata$feature <- gsub(".*\\_", "", MOFAvalidation.trained@features_metadata$feature)
+
+rownames(MOFAvalidation.trained@data$Aging$group1) <- gsub(".*\\_", "", rownames(MOFAvalidation.trained@data$Aging$group1))
+rownames(MOFAvalidation.trained@data$Immunology$group1) <- gsub(".*\\_", "", rownames(MOFAvalidation.trained@data$Immunology$group1))
+rownames(MOFAvalidation.trained@data$Cellular$group1) <- gsub(".*\\_", "", rownames(MOFAvalidation.trained@data$Cellular$group1))
+#rownames(MOFAvalidation.trained@data$TE$group1)[41] <- "Simple Repeat"
+
+rownames(MOFAvalidation.trained@expectations$W$Immunology) <- gsub(".*\\_", "", rownames(MOFAvalidation.trained@expectations$W$Immunology))
+rownames(MOFAvalidation.trained@expectations$W$Aging) <- gsub(".*\\_", "", rownames(MOFAvalidation.trained@expectations$W$Aging))
+rownames(MOFAvalidation.trained@expectations$W$Cellular) <- gsub(".*\\_", "", rownames(MOFAvalidation.trained@expectations$W$Cellular))
+rownames(MOFAvalidation.trained@expectations$W$clinical_category) <- gsub(".*\\_", "", rownames(MOFAvalidation.trained@expectations$W$clinical_category))
+
+
+#rownames(MOFAvalidation.trained@expectations$W$TE)[41] <- "Simple_Repeat"
+names(MOFAvalidation.trained@intercepts$Cellular$group1) <- gsub(".*\\_", "", names(MOFAvalidation.trained@intercepts$Cellular$group1))
+names(MOFAvalidation.trained@intercepts$Aging$group1) <- gsub(".*\\_", "", names(MOFAvalidation.trained@intercepts$Aging$group1))
+names(MOFAvalidation.trained@intercepts$Immunology$group1) <- gsub(".*\\_", "", names(MOFAvalidation.trained@intercepts$Immunology$group1))
+
+which(MOFAvalidation.trained@features_metadata$feature == "Cytotolytic score")
+MOFAvalidation.trained@features_metadata$feature[133] <- "Cytolytic score"
+
+which(rownames(MOFAvalidation.trained@data$Immunology$group1) == "Cytotolytic score")
+rownames(MOFAvalidation.trained@data$Immunology$group1)[42] <- "Cytolytic score"
+
+which(rownames(MOFAvalidation.trained@expectations$W$Immunology) == "Cytotolytic score")
+rownames(MOFAvalidation.trained@expectations$W$Immunology)[42] <- "Cytolytic score"
+
+```
+
+
+
+```{r, theme that is used for plots}
+plot_themeFunc <- theme(axis.title.x = element_text(size = 5, family = "Helvetica", color = "black"), 
+                        axis.title.y = element_text(size = 5, family = "Helvetica", color = "black"),
+                        axis.text.y = element_text(size = 5, family = "Helvetica", color = "black"),
+                        axis.text.x =  element_text(size = 5, family = "Helvetica", color = "black"), 
+                        #axis.ticks.y = element_blank(), axis.ticks.x = element_line(), 
+                        legend.position = "top", legend.title = element_blank(), 
+                        legend.text = element_text(size = 5, color = "black"), 
+                        legend.key = element_rect(fill = "transparent"), 
+                        axis.line = element_line(colour = "black"), aspect.ratio = 1,
+                        panel.grid.major = element_blank(),
+                        panel.grid.minor = element_blank(),
+                        panel.border = element_blank(),
+                        panel.background = element_blank(),
+                        plot.margin = unit(c(0,0,0,0), "mm"))
+```
+
+
+# Variance Decomposition
+
+  This plot shows the percentage of variance explained by each factor across each data modality. It summarises the sources of variation from a complex heterogeneous data set in a single figure.
+
+```{r variance decomp plot, echo=F, fig.width= 10}
+plot_variance_explained(MOFAvalidation.trained, max_r2=60,
+                        y = "view", x = "factor", factors = 1:15)  + 
+  theme(axis.title.x = element_text(size = 5, family = "Helvetica", color = "black"), 
+                        axis.title.y = element_text(size = 5, family = "Helvetica", color = "black"),
+                        axis.text.y = element_text(size = 5, family = "Helvetica", color = "black"),
+                        axis.text.x =  element_text(size = 5, family = "Helvetica", color = "black"), 
+                        #axis.ticks.y = element_blank(), axis.ticks.x = element_line(), 
+                        legend.position = "none", legend.title = element_text(size = 7, family = "Helvetica", color = "black"), 
+                        legend.text = element_text(size = 7, color = "black"), 
+                        legend.key.size = unit(3, "mm"), 
+                        #axis.line = element_line(colour = "black"), aspect.ratio = 1,
+                        panel.grid.major = element_blank(),
+                        panel.grid.minor = element_blank(),
+                        panel.border = element_blank(),
+                        panel.background = element_blank(),
+                        plot.margin = unit(c(0,0,0,0), "mm")) 
+ggsave("../figures/New_figures_2024/variance_decomp_cd34.pdf", width = 80, height = 45, units = "mm", dpi = 300)
+```
+
+
+## Total variance explained per view 
+
+```{r total varExplained, echo=F, fig.width= 9}
+plot_variance_explained(MOFAvalidation.trained, plot_total = T)[[2]] + 
+  theme(axis.title.x = element_text(size = 7, family = "Helvetica", color = "black"), 
+                        axis.title.y = element_text(size = 7, family = "Helvetica", color = "black"),
+                        axis.text.y = element_text(size = 7, family = "Helvetica", color = "black"),
+                        axis.text.x =  element_text(size = 7, family = "Helvetica", color = "black"), 
+                        panel.grid.major = element_blank(),
+                        panel.grid.minor = element_blank(),
+                        panel.border = element_blank(),
+                        panel.background = element_blank(),
+                        plot.margin = unit(c(0,0,0,0), "mm")) + coord_flip()
+ggsave("../figures/New_figures_2024/total_variance_cd34.pdf", width = 60, height = 60, units = "mm", dpi = 300)
+```
+
+
+# Plot feature weights 
+
+## Plot weights for TE for Factors that are active in TE
+```{r feature weights, echo=FALSE, fig.width=10, fig.show='hold', out.width="30%"}
+plot_top_weights(MOFAvalidation.trained,
+                 view = "TE",
+                 factors = 1,
+                 nfeatures = 20,
+                 scale = T) + plot_themeFunc + labs(y = "Absolute loading on Factor 1", title = "", x = "") + facet_grid(cols = NULL)
+plot_top_weights(MOFAvalidation.trained,
+                 view = "TE",
+                 factors = 5,
+                 nfeatures = 20,
+                 scale = T) + plot_themeFunc + labs(y = "Absolute loading on Factor 5", title = "", x = "") + facet_grid(cols = NULL)
+
+plot_top_weights(MOFAvalidation.trained,
+                      view = "TE",
+                      factors = 9,
+                      nfeatures = 6,
+                      scale = T) + plot_themeFunc + labs(y = "Absolute loading on Factor 9", title = "", x = "") + facet_grid(cols = NULL)
+
+
+
+```
+
+SINE:Alu has a positive weight; this means that samples with positive Factor 1 values have SINE:Alu, whereas samples with negative Factor 1 values have lesser SINE:Alu. To confirm this, plot the Factor values and colour
+
+```{r plot factor vs features, echo=FALSE}
+plot_factor(MOFAvalidation.trained,
+            factors = 1, 
+            color_by = "SINE:Alu"
+            )
+
+```
+
+## Plot weights for gene-signature categories for Factors 
+
+### Aging weights
+
+```{r  , echo=F, fig.width= 10, fig.show='hold', out.width="30%", out.height="30%"}
+plot_top_weights(MOFAvalidation.trained,
+                 view = "Aging",
+                 factors = 1,
+                 nfeatures = 20, scale = T, abs = F) + plot_themeFunc + labs(y = "Absolute loading on Factor 1", title = "", x = "") + facet_grid(cols = NULL)
+plot_top_weights(MOFAvalidation.trained,
+                 view = "Aging",
+                 factors = 2,
+                 nfeatures = 20, scale = T, abs = F) + plot_themeFunc + labs(y = "Absolute loading on Factor 2", title = "", x = "") + facet_grid(cols = NULL)
+plot_top_weights(MOFAvalidation.trained,
+                 view = "Aging",
+                 factors = 3,
+                 nfeatures = 20, scale = T, abs = F) + plot_themeFunc + labs(y = "Absolute loading on Factor 3", title = "", x = "") + facet_grid(cols = NULL)
+plot_top_weights(MOFAvalidation.trained,
+                 view = "Aging",
+                 factors = 4,
+                 nfeatures = 20, scale = T, abs = F) + plot_themeFunc + labs(y = "Absolute loading on Factor 4", title = "", x = "") + facet_grid(cols = NULL)
+plot_top_weights(MOFAvalidation.trained,
+                 view = "Aging",
+                 factors = 6,
+                 nfeatures = 20, scale = T, abs = F) + plot_themeFunc + labs(y = "Absolute loading on Factor 6", title = "", x = "") + facet_grid(cols = NULL)
+
+```
+
+Aging_inflammatory cytokines had largest weight in Factor 2, Aging_Inflammaging and Aging_Inflammatory chemokines had slightly larger weight in Factor 3.
+
+
+### Cellular weights
+
+```{r  , echo=F, fig.width= 10, fig.show='hold', out.width="30%"}
+plot_top_weights(MOFAvalidation.trained,
+                 view = "Cellular",
+                 factors = 1,
+                 nfeatures = 20, scale = T) + plot_themeFunc + labs(y = "Absolute loading on Factor 1", title = "", x = "") + facet_grid(cols = NULL)
+plot_top_weights(MOFAvalidation.trained,
+                 view = "Cellular",
+                 factors = 3,
+                 nfeatures = 20, scale = T) + plot_themeFunc + labs(y = "Absolute loading on Factor 3", title = "", x = "") + facet_grid(cols = NULL)
+plot_top_weights(MOFAvalidation.trained,
+                 view = "Cellular",
+                 factors = 4,
+                 nfeatures = 20, scale = T) + plot_themeFunc + labs(y = "Absolute loading on Factor 4", title = "", x = "") + facet_grid(cols = NULL)
+plot_top_weights(MOFAvalidation.trained,
+                 view = "Cellular",
+                 factors = 7,
+                 nfeatures = 20, scale = T) + plot_themeFunc + labs(y = "Absolute loading on Factor 7", title = "", x = "") + facet_grid(cols = NULL)
+plot_top_weights(MOFAvalidation.trained,
+                 view = "Cellular",
+                 factors = 8,
+                 nfeatures = 20, scale = T) + plot_themeFunc + labs(y = "Absolute loading on Factor 8", title = "", x = "") + facet_grid(cols = NULL)
+```
+
+### Immunology weights
+
+```{r  , echo=F, fig.width= 10, fig.show='hold', out.width="30%", out.height="30%"}
+plot_top_weights(MOFAvalidation.trained,
+                 view = "Immunology",
+                 factors = 1,
+                 nfeatures = 20, scale = T) + plot_themeFunc + labs(y = "Absolute loading on Factor 1", title = "", x = "") + facet_grid(cols = NULL)
+plot_top_weights(MOFAvalidation.trained,
+                 view = "Immunology",
+                 factors = 3,
+                 nfeatures = 20, scale = T) + plot_themeFunc + labs(y = "Absolute loading on Factor 3", title = "", x = "") + facet_grid(cols = NULL)
+plot_top_weights(MOFAvalidation.trained,
+                 view = "Immunology",
+                 factors = 4,
+                 nfeatures = 20, scale = T) + plot_themeFunc + labs(y = "Absolute loading on Factor 4", title = "", x = "") + facet_grid(cols = NULL)
+plot_top_weights(MOFAvalidation.trained,
+                 view = "Immunology",
+                 factors = 6,
+                 nfeatures = 20, scale = T) + plot_themeFunc + labs(y = "Absolute loading on Factor 6", title = "", x = "") + facet_grid(cols = NULL)
+plot_top_weights(MOFAvalidation.trained,
+                 view = "Immunology",
+                 factors = 7,
+                 nfeatures = 20, scale = T) + plot_themeFunc + labs(y = "Absolute loading on Factor 7", title = "", x = "") + facet_grid(cols = NULL)
+plot_top_weights(MOFAvalidation.trained,
+                 view = "Immunology",
+                 factors = 8,
+                 nfeatures = 20, scale = T) + plot_themeFunc + labs(y = "Absolute loading on Factor 8", title = "", x = "") + facet_grid(cols = NULL)
+
+
+```
+
+## Plot weights for mutation
+
+
+```{r mut weights, echo=F, fig.width= 10}
+plot_top_weights(MOFAvalidation.trained,
+                 view = "mutation",
+                 factors = 6,
+                 nfeatures = 20) + plot_themeFunc + labs(y = "Absolute loading on Factor 6", title = "", x = "") + facet_grid(cols = NULL)
+plot_top_weights(MOFAvalidation.trained,
+                 view = "mutation",
+                 factors = 7,
+                 nfeatures = 20) + plot_themeFunc + labs(y = "Absolute loading on Factor 7", title = "", x = "") + facet_grid(cols = NULL)
+```
+
+
+
+```{r, echo=FALSE,  fig.show='hold', out.width= "50%"}
+my_comparisons <- list(c("0", "1"))
+plot_factor(MOFAvalidation.trained,
+            factors = 6, 
+            color_by = "SF3B1", add_boxplot = T, dodge = T) 
+
+plot_factor(MOFAvalidation.trained,
+            factors = 6, 
+            color_by = "SRSF2", add_boxplot = T, dodge = T)
+
+```
+
+
+
+## Plot weights for clinical category
+
+```{r, echo=F, fig.width= 10}
+plot_top_weights(MOFAvalidation.trained,
+                 view = "clinical_category",
+                 factors = 2,
+                 nfeatures = 20) + plot_themeFunc + labs(y = "Absolute loading on Factor 2", title = "", x = "") + facet_grid(cols = NULL)
+plot_top_weights(MOFAvalidation.trained,
+                 view = "clinical_category",
+                 factors = 4,
+                 nfeatures = 20) + plot_themeFunc + labs(y = "Absolute loading on Factor 4", title = "", x = "") + facet_grid(cols = NULL)
+plot_top_weights(MOFAvalidation.trained,
+                 view = "clinical_category",
+                 factors = 6,
+                 nfeatures = 20) + plot_themeFunc + labs(y = "Absolute loading on Factor 6", title = "", x = "") + facet_grid(cols = NULL)
+
+```
+
+In Factor 4, AML clearly had larger weight than Sex, so plotted Factor 5 coloured by AML status in the input data. 
+
+```{r, echo=FALSE,  fig.show='hold', out.width= "50%"}
+
+plot_factor(MOFAvalidation.trained,
+            factors = 4, 
+            color_by = "AML",
+            add_boxplot = T, dodge = T)
+
+plot_factor(MOFAvalidation.trained,
+            factors = 4, 
+            color_by = "AML",
+            shape_by = "Sex"
+            #add_violin = T, dodge = T
+            )
+
+```
+
+
+
+# Plot important features for each Factors
+The important features within each view were defined as having absolute weights over 0.5 for each factor separately.
+
+```{r, Heatmap for important weigts in for all factors}
+weights_longdf <- get_weights(MOFAvalidation.trained, as.data.frame = T)
+significants <- weights_longdf[abs(weights_longdf$value) > 0.5,]
+
+factors_weights_notscaled <- rbind(MOFAvalidation.trained@expectations$W$TE, 
+                MOFAvalidation.trained@expectations$W$Immunology,
+                MOFAvalidation.trained@expectations$W$Cellular,
+                MOFAvalidation.trained@expectations$W$Aging,
+                MOFAvalidation.trained@expectations$W$clinical_numeric,
+                MOFAvalidation.trained@expectations$W$mutation,
+                MOFAvalidation.trained@expectations$W$clinical_category)
+
+
+fac1 <- factors_weights_notscaled[c(as.vector(significants$feature)),]
+fac1 <- fac1[!duplicated(fac1),]
+
+import_feat <- as.data.frame(fac1)
+import_feat$views <- MOFAvalidation.trained@features_metadata$view[match(rownames(fac1),MOFAvalidation.trained@features_metadata$feature)]
+
+
+
+colnames(fac1) <- gsub("Factor", "", colnames(fac1))
+col = list(views = c("Aging" = "#F39200FF",
+                       "Cellular" = "#EFD500FF",
+                       "clinical_category" = "#007B3DFF",
+                       "Immunology" = "#31B7BCFF",
+                       "mutation" = "#95C11FFF",
+                       "TE" = "#6F286AFF"))
+
+# Create the heatmap annotation
+ha <- HeatmapAnnotation(
+  views = import_feat$views, col = col, which = "row", show_legend = T, show_annotation_name = F,
+  annotation_legend_param =  list(title = "Views", title_gp = gpar(fontsize = 5, family= "Helvetica"),
+                                  labels = c("Aging", 
+                                             "Cellular", 
+                                             "Clinical", 
+                                             "Mutation", 
+                                             "Immunology", 
+                                             "TE"),
+                                  labels_gp = gpar(fontsize = 5, family= "Helvetica"), grid_height = unit(2.8, "mm"),
+                                  grid_width = unit(2.8, "mm"))
+)
+
+
+library(circlize)
+f2 = colorRamp2(c(-2, 0, 2), c("#0000FFFF", "#FFFFFFFF", "#FF0000FF"), space = "RGB")
+
+H <- Heatmap(fac1,
+             name = "weights", 
+             color_space = "RGB",
+             #col = f2,
+             row_order = rownames(fac1)[order(rownames(fac1))],
+             show_heatmap_legend = T,
+             heatmap_legend_param = list(
+               title = "Weights", title_gp = gpar(fontsize = 5, family= "Helvetica"),
+               labels_gp = gpar(fontsize = 5, family= "Helvetica"), grid_height = unit(2.8, "mm"),
+               grid_width = unit(2.8, "mm")),
+             split = import_feat$views,
+             row_gap = unit(0.001, "mm"),
+             right_annotation = ha,
+             cluster_columns = F,
+             show_column_dend = F,
+             show_row_dend = F,
+             row_title = NULL,
+             row_names_gp = gpar(fontsize = 5, fontfamily = "Helvetica"),
+             column_names_gp = gpar(fontsize = 5, fontfamily = "Helvetica"),
+             column_names_rot = 360,
+             column_names_centered = T,
+             column_title = "Factors",
+             column_title_side = "bottom",
+             column_title_gp = gpar(fontsize = 5, fontfamily = "Helvetica")
+             
+)
+
+draw(H)
+  
+
+
+
+```
+
+
+# Characterisation of Factor 1
+
+Based on the feature weights in Factor 1, Cellular gene-signature was used in the plots with SINE:Alu (largest weighted feature in TE for Factor 1). Scatterplots of Factor 1 values (x-axis) versus expression values (y-axis) for the top 4 TE with largest positive and negative weight respectively. Samples are coloured by Cellular_Decomposition_GMP status:
+
+
+
+```{r, echo=F, fig.show='hold', out.height="50%"}
+plot_data_scatter(MOFAvalidation.trained,
+                  view = "Aging",
+                  factor = 1,
+                  features = 2,
+                  sign = "positive", dot_size = 1, alpha = 0.7, text_size = 3) + plot_themeFunc 
+plot_data_scatter(MOFAvalidation.trained,
+                  view = "Aging",
+                  factor = 1,
+                  features = 2,
+                  sign = "negative", dot_size = 1, alpha = 0.7, text_size = 3) + plot_themeFunc 
+```
+
+
+```{r, echo=F, fig.show='hold', out.height="50%"}
+plot_data_scatter(MOFAvalidation.trained,
+                  view = "Cellular",
+                  factor = 1,
+                  features = 2,
+                  sign = "positive", dot_size = 1, alpha = 0.7, text_size = 3) + plot_themeFunc 
+plot_data_scatter(MOFAvalidation.trained,
+                  view = "Cellular",
+                  factor = 1,
+                  features = 2,
+                  sign = "negative", dot_size = 1, alpha = 0.7, text_size = 3) + plot_themeFunc 
+```
+
+```{r, echo=F, fig.show='hold', out.height="50%"}
+plot_data_scatter(MOFAvalidation.trained,
+                  view = "Immunology",
+                  factor = 1,
+                  features = 2,
+                  sign = "positive", dot_size = 1, alpha = 0.7, text_size = 3) + plot_themeFunc 
+plot_data_scatter(MOFAvalidation.trained,
+                  view = "Immunology",
+                  factor = 1,
+                  features = 2,
+                  sign = "negative", dot_size = 1, alpha = 0.7, text_size = 3) + plot_themeFunc 
+```
+
+
+
+## Important features for Factor 1
+
+```{r, echo=F, message=FALSE, fig.width=8, fig.height=10}
+weight_df <- do.call(rbind, get_weights(MOFAvalidation.trained, factors = 1, 
+                                  as.data.frame = FALSE, scale = T))
+
+tmp1 <- rownames(weight_df)[abs(weight_df[,1]) > 0.5]
+
+```
+
+```{r, echo=F, fig.width=13, fig.height=10, out.width="50%"}
+
+agin1 <- MOFAvalidation.trained@data$Aging$group1[rownames(MOFAvalidation.trained@data$Aging$group1) %in% tmp1,]
+im1 <- MOFAvalidation.trained@data$Immunology$group1[rownames(MOFAvalidation.trained@data$Immunology$group1) %in% tmp1,]
+cel1 <- MOFAvalidation.trained@data$Cellular$group1[rownames(MOFAvalidation.trained@data$Cellular$group1) %in% tmp1,]
+
+
+f1 <- rbind(agin1, im1, cel1)
+
+f1_df <- as.data.frame(f1)
+f1_df$views <- MOFAvalidation.trained@features_metadata$view[match(rownames(f1),MOFAvalidation.trained@features_metadata$feature)]
+f1_df <- as.data.frame(f1)
+f1_df$views <- MOFAvalidation.trained@features_metadata$view[match(rownames(f1),MOFAvalidation.trained@features_metadata$feature)]
+
+col = list(views = c("Aging" = "#F39200FF", 
+                     "Cellular" = "#EFD500FF", 
+                     "Immunology" = "#31B7BCFF"))
+                     
+# Create the heatmap annotation
+ha <- HeatmapAnnotation(
+  views = f1_df$views, col = col, which = "row", show_legend = F, show_annotation_name = F,
+  annotation_legend_param =  list(title = "Views", title_gp = gpar(fontsize = 5, family= "Helvetica"),
+                                  labels = c("Aging", "Cellular", 'Immunology'),
+                                  simple_anno_size = unit(0.8, "mm"),
+                                  #simple_anno_size_adjust = T,
+                                  labels_gp = gpar(fontsize = 5, family= "Helvetica"), grid_height = unit(2.8, "mm"),
+                                  grid_width = unit(2.8, "mm"))
+)
+
+fac1n <- MOFAvalidation.trained@expectations$Z$group1[,1]
+fac1n <- sort(fac1n)
+fac1n <- as.data.frame(fac1n)
+
+#col_fun = colorRamp2(c(min(fac1$fac1), median(fac1$fac1), max(fac1$fac1)), c("blue", "white", "red"))
+col_fun = colorRamp2(c(-2, 0, 2), c("blue", "white", "red"))
+
+col_ha <- HeatmapAnnotation(Factor1= fac1n$fac1, col = list(Factor1 = col_fun), which = "col", show_legend = F,show_annotation_name = T,
+                            annotation_name_gp = gpar(fontsize = 5, family= "Helvetica"),
+                            simple_anno_size = unit(2, "mm"),
+                            simple_anno_size_adjust = T, 
+                            #width = unit(0.8, "mm"),
+                            annotation_legend_param =  list(title = "Factor1", 
+                                                            title_gp = gpar(fontsize = 5, family= "Helvetica"),
+                                                            labels_gp = gpar(fontsize = 5, family= "Helvetica"),
+                                                            grid_height = unit(2, "mm"), #legend_direction = "horizontal",
+                                                            grid_width = unit(2, "mm")))
+
+f1Hd <- Heatmap(f1[,rownames(fac1n)],
+                row_order = rownames(f1)[order(rownames(f1))],
+                col = col_fun,
+                show_heatmap_legend = F,
+                heatmap_legend_param = list(
+                  title = "Weights", title_gp = gpar(fontsize = 5, family= "Helvetica"),
+                  labels_gp = gpar(fontsize = 5, family= "Helvetica"), grid_height = unit(2.8, "mm"),
+                  grid_width = unit(2.8, "mm")
+                  #legend_height = 2, legend_width = 0.5
+                ),
+                split = f1_df$views,
+                bottom_annotation = col_ha,
+                color_space = "RGB",
+                row_gap = unit(0.01, "mm"),
+                right_annotation = ha,
+                cluster_columns = F,
+                show_column_dend = F,
+                show_row_dend = F,
+                row_title = NULL,
+                row_names_gp = gpar(fontsize = 5, fontfamily = "Helvetica"),
+                show_column_names = F,
+                width = unit(57, "mm")
+)
+
+pdf("../figures/New_figures_2024/Factor1_Heatmap_cd34.pdf", width = 3.46457, height = 2.51969, onefile = T)
+draw(f1Hd) 
+dev.off()
+
+```
+
+
+# Prediction of clinical outcome
+In Cox proportional hazards model, hazard of an event occurring (death/treatment) as a function of some covariates (here the factors). If a factor has a influence on the survival time or Days it will receive a high absolute coefficient in the Cox model.
+
+  + If the coefficient is positive, samples with large factor values have an increased hazard compared the samples with small factor values.
+  + If the coefficient is negative, samples with small factor values have an increased hazard compared the samples with large factor values.
+
+## Overall Survival
+
+
+```{r survival analysis, echo=F, fig.width=8, fig.align='center'}
+SurvObject <- Surv(MOFAvalidation.trained@samples_metadata$OS,
+                   MOFAvalidation.trained@samples_metadata$Event)
+Z <- get_factors(MOFAvalidation.trained)[[1]]
+# coxph------------
+fit <- coxph(SurvObject ~ Z)
+# fit
+
+# plot HR
+s <- summary(fit)
+coef <- s[["coefficients"]]
+
+
+df_cox <- data.frame(
+  factor = factor(rownames(coef), levels = rev(rownames(coef))),
+  p      = round(coef[,"Pr(>|z|)"], 4),
+  coef   = coef[,"exp(coef)"],
+  lower  = s[["conf.int"]][,"lower .95"],
+  higher = s[["conf.int"]][,"upper .95"]
+)
+
+ggplot(df_cox, aes(x=factor, y=coef, ymin=lower, ymax=higher)) +
+  #stat_pvalue_manual(label = "p") +
+  geom_pointrange( col='#619CFF') +
+  coord_flip() +
+  scale_x_discrete() +
+  labs(y="Hazard Ratio", x="") +
+  geom_hline(aes(yintercept=1), linetype="dotted") +
+  theme_bw() +
+  geom_text(aes(y = 3.1, label = p), data = df_cox, size = 3)
+
+
+# finalfit----
+df <- cbind(MOFAvalidation.trained@samples_metadata, Z)
+df <- as.data.frame(df)
+factors <- c("Sex", "Age", "Factor1","Factor2","Factor3","Factor4","Factor5","Factor6","Factor7","Factor8","Factor9","Factor10")
+dependent_os <- "Surv(OS, Event)"
+knitr::kable(df %>% 
+  finalfit(dependent_os, factors, add_dependent_label = FALSE) %>% 
+    rename("Overall survival" = label) %>% 
+    rename(" " = levels) %>% 
+    rename("  " = all) 
+)
+```
+
+
+
+## Event-free Survival
+
+
+```{r efs survival analysis, echo=F, fig.width=8, fig.align='center'}
+SurvObject <- Surv(MOFAvalidation.trained@samples_metadata$EFS,
+                   MOFAvalidation.trained@samples_metadata$Event)
+Z <- get_factors(MOFAvalidation.trained)[[1]]
+fit_efs <- coxph(SurvObject ~ Z)
+#fit_efs
+
+# plot HR
+s_efs <- summary(fit_efs)
+coef_efs <- s_efs[["coefficients"]]
+
+df_cox_efs <- data.frame(
+  factor = factor(rownames(coef_efs), levels = rev(rownames(coef_efs))),
+  p      = round(coef_efs[,"Pr(>|z|)"], 4),
+  coef   = coef_efs[,"exp(coef)"],
+  lower  = s_efs[["conf.int"]][,"lower .95"],
+  higher = s_efs[["conf.int"]][,"upper .95"]
+)
+
+ggplot(df_cox_efs, aes(x=factor, y=coef, ymin=lower, ymax=higher)) +
+  #stat_pvalue_manual(label = "p") +
+  geom_pointrange( col='#619CFF') +
+  coord_flip() +
+  scale_x_discrete() +
+  labs(y="Hazard Ratio", x="") +
+  geom_hline(aes(yintercept=1), linetype="dotted") +
+  theme_bw() +
+  geom_text(aes(y = 7.5, label = p), data = df_cox_efs, size = 3)
+
+# finalfit----
+df <- cbind(MOFAvalidation.trained@samples_metadata, Z)
+factors <- c("Sex", "Age", "Factor1","Factor2","Factor3","Factor4","Factor5","Factor6","Factor7","Factor8","Factor9","Factor10")
+dependent_efs <- "Surv(EFS, Event)"
+knitr::kable(df %>% 
+  finalfit(dependent_efs, factors, add_dependent_label = FALSE) %>% 
+    rename("Event Free Survival" = label) %>% 
+    rename(" " = levels) %>% 
+    rename("  " = all) 
+)
+
+```
+
+
+
+# Gene Set Enrichment Analysis Factor Groups
+```{r}
+factors <- as.data.frame(get_factors(MOFAvalidation.trained)[[1]])
+factors$Factor1_group <- ifelse(factors$Factor1 > quantile(factors$Factor1, prob = seq(0, 1, length = 11), type = 4)[8], "High",
+                                ifelse(factors$Factor1 < quantile(factors$Factor1, prob = seq(0, 1, length = 11), type = 4)[4], "Low", "Mid"))
+
+factors <- factors[,c(1,12)]
+write.csv(factors, "Factor_1groups_for_GSEA_validation.csv")
+```
+
+```{r}
+factors <- as.data.frame(get_factors(MOFAvalidation.trained)[[1]])
+factors$Factor1_group <- ifelse(factors$Factor1 > quantile(factors$Factor1)[4], "High",
+                                ifelse(factors$Factor1 < quantile(factors$Factor1)[2], "Low", "Mid"))
+
+factors <- factors[,c(1,12)]
+write.csv(factors, "Factor_1groups_for_GSEA_validation_25_75Q.csv")
+```
