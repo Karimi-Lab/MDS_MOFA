@@ -1,5 +1,5 @@
 ###############
-## Boxplot script from Nogay
+## Mutation relation with gene set signatures
 ## Plot the distributions absent/present of SF3B1 & SRS2F
 ## 22 Sep, 2023 
 ## Sila Gerlevik
