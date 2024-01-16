@@ -18,7 +18,7 @@ Scripts and data used in the Multi modal MDS analysis paper
 
 ### Generate heatmap of important features with high weights for each views per factor
 
-<img width="262" alt="image" src="https://github.com/Karimi-Lab/MDS_MOFA/assets/98902126/62b5b662-5895-4b83-a0a2-a08f372daae4">
+<img width="500" alt="image" src="https://github.com/Karimi-Lab/MDS_MOFA/assets/98902126/62b5b662-5895-4b83-a0a2-a08f372daae4">
 
 Run the "Important weights per factors" chunk in _BMMNC_MOFA.Rmd_. Significant features were determined based on absolute weight over 0.5. 
 
