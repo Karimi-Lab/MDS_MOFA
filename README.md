@@ -2,7 +2,7 @@
 Scripts and data used in the Multi modal MDS analysis paper
 
 Summary of the paper
-<img width="225" alt="image" src="https://github.com/Karimi-Lab/MDS_MOFA/assets/98902126/2597e9ba-71ea-49fd-94a9-5f9c32be967f">
+<img width="300" alt="image" src="https://github.com/Karimi-Lab/MDS_MOFA/assets/98902126/2597e9ba-71ea-49fd-94a9-5f9c32be967f">
 
 
 How to use the scripts
