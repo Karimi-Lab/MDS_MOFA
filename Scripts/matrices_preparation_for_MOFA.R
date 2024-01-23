@@ -165,3 +165,103 @@ bmmnc_df$sample <- rownames(bmmnc_df)
 # add metadata to MOFA 
 samples_metadata(MOFAobject.trained) <- bmmnc_df
 head(MOFAobject.trained@samples_metadata, n=3)
+
+# Matrices preparation for CD34+ RNASeq cohort ----------------------
+# data load --------------
+load("data/GSE114922/GSE114922_clinical_df_newCat.Rda")
+load("data/GSE114922/GSE114922_genotype_df_newCat.Rda")
+load("data/GSE114922/GSE114922_singscores_df_newCat.Rda")
+load("data/GSE114922/GSE114922_TE_df_newCat.Rda")
+
+# guideliness for data preprocessing; 
+## user should normalize the data according to the likelihood model that will be adopted, which will typically be a Gaussian distribution,
+## for count-based assays such as (single-cell) RNA-seq, we recommend size factor normalization followed by a variance stabilization transformation
+
+# split clinical views -----------
+clinical_df <- as.data.frame(t(clinical_df))
+clinical_df$Status <- ifelse(clinical_df$Status == "DEAD", 1, 0)
+clinical_df$Days <- as.numeric(clinical_df$Days)
+
+clinic.feat <- colnames(clinical_df)
+
+clinical_num_df <- clinical_df %>%  select("Age", "Hb", "WBC", "Neut", "Platelet", "Blast(%)")
+clinical_num_df[] <- lapply(clinical_num_df, as.numeric)
+
+clinical_category_df <- clinical_df %>% select(-colnames(clinical_num_df), -"Status", -"Days")
+clinical_category_df$Sex <- ifelse(clinical_category_df$Sex == "F", 1, 0)
+clinical_category_df[] <- lapply(clinical_category_df, as.numeric)
+
+
+# gene signature df -----
+table(rowSums(is.na(singscore_df) == ncol(singscore_df))) # check if there is NA for all samples
+
+# character limitation for geneSignature
+geneSignature <- singscore_df
+gene_sets <- gsub("_.*$", "", rownames(geneSignature))
+table(gene_sets)
+
+list_of_genesig <- split(geneSignature, f=gene_sets)
+list_of_genesig <- list_of_genesig[c("Aging", "Cellular", "Immunology")]
+
+list_of_genesig$Aging <- as.matrix(list_of_genesig$Aging)
+list_of_genesig$Cellular <- as.matrix(list_of_genesig$Cellular)
+list_of_genesig$Immunology <- as.matrix(list_of_genesig$Immunology)
+
+# genotype data ---------
+table(genotype_df > 1)
+
+all(colnames(genotype_df) == colnames(geneSignature))
+
+# check nearzero variance
+set.seed(111)
+zeros <- nearZeroVar(t(genotype_df))
+
+# TE -----
+
+GSE114922_te_df <- GSE114922_te_df[-grep("Unknown", rownames(GSE114922_te_df)),]
+
+# remove the family/class
+
+GSE114922_te_df <- GSE114922_te_df[grepl(":", rownames(GSE114922_te_df)),]
+
+all(colnames(GSE114922_te_df) == colnames(geneSignature))
+all(rownames(clinical_category_df) == colnames(geneSignature))
+all(rownames(clinical_num_df) == colnames(geneSignature))
+
+# list of matrices 
+matrices <- list(#antigens = as.matrix(antigens_df),
+  TE = as.matrix(GSE114922_te_df),
+  mutation = as.matrix(genotype_df),
+  clinical_category = as.matrix(t(clinical_category_df)),
+  clinical_numeric = as.matrix(t(clinical_num_df)))
+
+matrices <- append(matrices, list_of_genesig)
+lapply(matrices, dim)
+
+
+# MOFA object and train the model  ----------------------------
+set.seed(111)
+MOFAobject <- create_mofa(matrices)
+data_opts <- get_default_data_options(MOFAobject)
+data_opts$scale_views <- T
+data_opts
+
+model_opts <- get_default_model_options(MOFAobject)
+model_opts$likelihoods[3] <- "bernoulli"
+model_opts$likelihoods[2] <- "bernoulli"
+model_opts$num_factors <- 15
+head(model_opts)
+
+train_opts <- get_default_training_options(MOFAobject)
+train_opts$freqELBO <- 1
+head(train_opts)
+
+MOFAobject <- prepare_mofa(
+  object = MOFAobject,
+  data_options = data_opts,
+  model_options = model_opts,
+  training_options = train_opts
+)
+
+MOFAobject.trained <- run_mofa(MOFAobject, "data/2102023_MOFA_without_antigens_on_validationCohort_GSE114922.hdf5", use_basilisk=TRUE)
+
