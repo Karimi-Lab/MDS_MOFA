@@ -114,7 +114,7 @@ colnames(ttest_val$P) <- c("SF3B1\nCD34", "SRSF2\nCD34")
 colnames(ttest_val$r) <- c("SF3B1\nCD34", "SRSF2\nCD34")
 
 
-# select cellular and aging for both cohort ----
+# Combine two cohorts correlation results for aging and cellular gene set scores  ----
 columnsfromboth <- cbind(ttest_disc$r[!grepl("Immunology", rownames(ttest_disc$r)),], 
                          ttest_val$r[!grepl("Immunology", rownames(ttest_val$r)),] )
 
@@ -166,13 +166,10 @@ ht <- Heatmap(as.matrix(columnsfromboth),
               ),
               column_names_rot = 0,
               column_names_centered = T
-              # width = ncol(as.matrix(columnsfromboth))*unit(1.8, "cm"),
-              # height = nrow(as.matrix(columnsfromboth))*unit(0.3, "cm")
-              
 ) 
 
 
-pdf("figures/New_figures_2024/allMutations_Heatmaps_Disc_val_agingCellular.pdf", width = 2.84331, height = 2.75591, onefile = T)
+pdf("Figures/Mutations_Heatmaps_Disc_val_agingCellular.pdf", width = 2.84331, height = 2.75591, onefile = T)
 draw(ht)
 dev.off()
 
@@ -224,442 +221,201 @@ pdf("figures/New_figures_2024/allMutations_Heatmaps_Disc_Immunology.pdf", width 
 draw(im_ht)
 dev.off()
 
-# get important features ------
+
+# Boxplots of gene sets that are significantly associated with SF3B1/SRSF2 -------
+
+#### get significant gene sets ------
 signif_SF3B1_cells <- rownames(ttest_disc$P)[which(ttest_disc$P$SF3B1 < 0.05)]
 signif_SF3B1_cells_val <- rownames(ttest_val$P)[which(ttest_val$P$SF3B1 < 0.05)]
 
 signif_SRSF2_cells <- rownames(ttest_disc$P)[which(ttest_disc$P$SRSF2 < 0.05)]
 signif_SRSF2_cells_val <- rownames(ttest_val$P)[which(ttest_val$P$SRSF2 < 0.05)]
 
+# merge mutation data and gene set data for both cohort seperately
+cell_mutations <- cbind(merge_df, mutations)
+colnames(cell_mutations) <- gsub(".*\\_", "", colnames(cell_mutations))
+cell_mutations$SF3B1 <- ifelse(cell_mutations$SF3B1 == 0, "SF3B1\nWT", "SF3B1\nMut")
+cell_mutations$SRSF2 <- ifelse(cell_mutations$SRSF2 == 0, "SRSF2\nWT", "SRSF2\nMut")
+signif_SF3B1_cells <- gsub(".*\\_", "", signif_SF3B1_cells)
+signif_SRSF2_cells <- gsub(".*\\_", "", signif_SRSF2_cells)
 
-ttest_disc$P < 0.05
+cell_mutations_v <- cbind(merge_val, mutations_val)
+colnames(cell_mutations_v) <- gsub(".*\\_", "", colnames(cell_mutations_v))
+cell_mutations_v$SF3B1 <- ifelse(cell_mutations_v$SF3B1 == 0, "SF3B1\nWT", "SF3B1\nMut")
+cell_mutations_v$SRSF2 <- ifelse(cell_mutations_v$SRSF2 == 0, "SRSF2\nWT", "SRSF2\nMut")
+signif_SF3B1_cells_val <- gsub(".*\\_", "", signif_SF3B1_cells_val)
+signif_SRSF2_cells_val <- gsub(".*\\_", "", signif_SRSF2_cells_val)
 
-
-
-# CD34+ Clinical Outcomes for Aging signatures of patients that have SF3B1 and SRSF2 mutation ####
-sf3b1mut_val <- mutations_val %>% filter(SF3B1 == 1) %>% rownames()
-srsf2mut_val <- mutations_val %>% filter(SRSF2 == 1) %>% rownames()
-
-aging_sf3b1mut_val <- merge_val[sf3b1mut_val, grep("Aging", colnames(merge_val))]
-aging_srsf2mut_val <- merge_val[srsf2mut_val, grep("Aging", colnames(merge_val))]
-
-load("data/GSE114922/GSE114922_clinical_df_newCat.Rda")
-
-clinical_df <- as.data.frame(t(clinical_df))
-clinical_df$Status <- ifelse(clinical_df$Status == "DEAD", 1, 0)
-clinical_df$Status <- as.numeric(clinical_df$Status)
-clinical_df$Days <- as.numeric(clinical_df$Days)
-
-sf3b1mut_clinical_val <- clinical_df[sf3b1mut_val,]
-#singscore_bmmnc <- as.data.frame(t(singscore_bmmnc))
-
-### SF3B1 mutated ######
-mds_sing_val <- aging_sf3b1mut_val
-colnames(mds_sing_val) <- gsub(".*\\_", "", colnames(mds_sing_val))
-
-
-plot_list_v <- list()
-i <- 1
-lowHighP <- list()
-
-for(sc in colnames(mds_sing_val)){
-  tmp <- as.data.frame(mds_sing_val) %>% mutate(quartile = ntile(get(sc), 4))
-  tmp$quartile <- plyr::mapvalues(tmp$quartile, from = c(1,2,3,4), to = c("Low", "Med", "Med", "High"))
-  
-  plot_df <- data.frame(Quartile = tmp$quartile, 
-                        Survival = sf3b1mut_clinical_val$Days,
-                        Event =  sf3b1mut_clinical_val$Status)
-  colnames(plot_df) <- c("Quartile","Survival","Event")
-  #plot_df$Event <- ifelse(plot_df$Event == "ALIVE", 0, 1)
-  
-  plot_df$Quartile <- factor(plot_df$Quartile, levels = c("Low", "Med", "High"), ordered = T)
-  
-  plot_df <- plot_df %>%
-    filter(Quartile != "Med")
-  
-  km_infChem <- survfit(formula = Surv(time = as.numeric(plot_df$Survival), event = as.numeric(plot_df$Event)) ~ plot_df$Quartile,
-                        data = plot_df)
-  
-  lowHighP[[sc]] <- survminer::surv_pvalue(km_infChem)$pval
-  
-  g <- ggsurvplot(km_infChem, data = plot_df,
-                  conf.int = F, pval = TRUE,
-                  fun = function(y) y * 100,
-                  legend = "top", xscale = "d_y", break.time.by=365.25*3,
-                  xlab = "Time to event", ylab="Survival probability (%)", title= sc, size = 2, censor.size = 15
-  )$plot
-  
-  plot_list_v[[i]] <- g
-  i <- i + 1
-}
-
-plot_list_v <- list()
-i <- 1
-for(sc in colnames(mds_sing_val)){
-  tmp <- as.data.frame(mds_sing_val) %>% mutate(quartile = ntile(get(sc), 4))
-  tmp$quartile <- plyr::mapvalues(tmp$quartile, from = c(1,2,3,4), to = c("Low", "Med", "Med", "High"))
-  
-  plot_df <- data.frame(Quartile = tmp$quartile, 
-                        Survival = sf3b1mut_clinical_val$Days,
-                        Event =  sf3b1mut_clinical_val$Status)
-  #colnames(plot_df) <- c("Quartile","Survival","Event")
-  #plot_df$Event <- ifelse(plot_df$Event == "ALIVE", 0, 1)
-  
-  plot_df$Quartile <- factor(plot_df$Quartile, levels = c("Low", "Med", "High"), ordered = T)
-  
-  km_infChem <- survfit(formula = Surv(time = as.numeric(plot_df$Survival), event = plot_df$Event) ~ plot_df$Quartile,
-                        data = plot_df)
-  
-  g <- ggsurvplot(km_infChem, data = plot_df,
-                  conf.int = F, pval = paste0("p-value:",round(lowHighP[[sc]],3)),
-                  fun = function(y) y * 100,
-                  legend = "top", xscale = "d_y", break.time.by=365.25*3,
-                  legend.title = " ", size = 0.3, censor.size = 1.5,
-                  palette = "npg", pval.size = 1.8, pval.coord = c(0.5, 10),
-                  legend.labs = c(paste("High"), paste("Low"), paste("Med")), 
-                  surv.plot.height = 0.3,
-                  xlab = "Years", ylab="Survival probability (%)")$plot + 
-    ggtitle(sc) +
-    theme(axis.line = element_line(colour = "black"),
+# summary plot for SF3B1 -----
+my_comparisons <- list(c("SF3B1\nWT", "SF3B1\nMut"))
+my_Plot_class <- function(signif_SF3B1_cells){
+  plot_it <- cell_mutations
+  plot_it$SF3B1 <- factor(plot_it$SF3B1, levels = c("SF3B1\nWT", "SF3B1\nMut"))
+  ggplot(plot_it, aes(x=SF3B1,y=plot_it[,signif_SF3B1_cells], fill=SF3B1))+
+    stat_boxplot(geom = "errorbar",width=0.3,aes(fill=SF3B1))+
+    geom_boxplot(notch = F,width=0.8,outlier.shape = NA)+
+    scale_fill_manual(values=c("#4DBBD5FF","#E64B35FF"))+
+    labs(x = NULL,
+         y = signif_SF3B1_cells)+
+    geom_jitter(alpha = 0.6, shape=16, position = position_jitter(0.1),color="black",size=0.5)+
+    ylim((min(plot_it[,signif_SF3B1_cells])-0.001), (max(plot_it[,signif_SF3B1_cells])+0.08)) +
+    stat_compare_means(comparisons = my_comparisons,
+                       size = 2.6,
+                       label.y = (max(plot_it[,signif_SF3B1_cells]) + 0.001),
+                       label.x = 0.3,
+                       aes(label = paste0("", after_stat(p.signif))),
+                       tip.length = 0) +
+    #ggtitle(signif_SF3B1_cells_val) +
+    theme(axis.title.x = element_text(size = 5, family = "Helvetica", color = "black"), 
+          axis.title.y = element_text(size = 5, family = "Helvetica", color = "black"),
+          axis.text.y = element_text(size = 5, family = "Helvetica", color = "black"),
+          axis.text.x =  element_text(size = 5, family = "Helvetica", color = "black"), 
+          #axis.ticks.y = element_blank(), axis.ticks.x = element_line(), 
+          legend.position = "none", legend.title = element_blank(), 
+          #legend.text = element_text(size = 5, color = "black"), 
+          #legend.key = element_rect(fill = "transparent"), 
+          axis.line = element_line(colour = "black"), aspect.ratio = 1,
           panel.grid.major = element_blank(),
           panel.grid.minor = element_blank(),
           panel.border = element_blank(),
-          panel.background = element_blank(),
-          #axis.ticks.x = element_blank(),
-          axis.text.x = element_text(size = 5, family = "Helvetica", color = "black"),
-          axis.text.y = element_text(size = 5, family = "Helvetica", color = "black"),
-          axis.title.x = element_text(size = 5, family = "Helvetica", color = "black"),
-          legend.position = "none", aspect.ratio = 1,
-          legend.title = element_text(size = 5, family = "Helvetica", color = "black"),
-          legend.text = element_text(size = 5, family = "Helvetica", color = "black"),
+          panel.background = element_blank())
+}
+
+my_Plot_List_class_sf3_d <- lapply(signif_SF3B1_cells, my_Plot_class)
+
+
+s3_pm <- plot_grid(plotlist = my_Plot_List_class_sf3_d, align = "hv", 
+                   nrow = 4,ncol = 5)
+ggsave("figures/sf3b1_disc_boxplot.pdf", s3_pm, width = 180, units = "mm", dpi = 300)
+
+
+
+# summary plot for SF3B1 validation -----
+my_comparisons <- list(c("SF3B1\nWT", "SF3B1\nMut"))
+my_Plot_class <- function(signif_SF3B1_cells_val){
+  plot_it <- cell_mutations_v
+  plot_it$SF3B1 <- factor(plot_it$SF3B1, levels = c("SF3B1\nWT", "SF3B1\nMut"))
+  ggplot(plot_it, aes(x=SF3B1,y=plot_it[,signif_SF3B1_cells_val], fill=SF3B1))+
+    stat_boxplot(geom = "errorbar",width=0.3,aes(fill=SF3B1))+
+    geom_boxplot(notch = F,width=0.8,outlier.shape = NA)+
+    scale_fill_manual(values=c("#4DBBD5FF","#E64B35FF"))+
+    labs(x = NULL,
+         y = signif_SF3B1_cells_val)+
+    geom_jitter(alpha = 0.6, shape=16, position = position_jitter(0.1),color="black",size=0.5)+
+    ylim((min(plot_it[,signif_SF3B1_cells_val])-0.001), (max(plot_it[,signif_SF3B1_cells_val])+0.08)) +
+    stat_compare_means(comparisons = my_comparisons,
+                       size = 2.6,
+                       label.y = (max(plot_it[,signif_SF3B1_cells_val]) + 0.001),
+                       label.x = 0.3,
+                       aes(label = paste0("", after_stat(p.signif))),
+                       tip.length = 0) +
+    #ggtitle(signif_SF3B1_cells_val) +
+    theme(axis.title.x = element_text(size = 5, family = "Helvetica", color = "black"), 
           axis.title.y = element_text(size = 5, family = "Helvetica", color = "black"),
-          plot.title = element_text(size = 5, family = "Helvetica", color = "black", vjust = -2))
-  
-  ggsave(paste0("figures/OS_val_SF3B1_mutated_",sc,".pdf"), g, width = 44, height = 44 , units = "mm", dpi = 300)
-  
-  plot_list_v[[i]] <- g
-  i <- i + 1
-}
-
-pdf(file = "figures/OS_val_SF3B1mut_Agings_KM.pdf",
-    width = 3.46457,
-    height = 4.72441, onefile = T, bg = "white")
-ggarrange(plotlist = plot_list_v, nrow = 3, ncol = 2, align = "hv", common.legend = T)
-
-dev.off()
-
-
-
-### SRSF2 mutated in CD34+ -------
-
-srsf2mut_clinical_val <- clinical_df[srsf2mut_val,]
-
-mds_sing_srsf2_v <- aging_srsf2mut_val
-colnames(mds_sing_srsf2_v) <- gsub(".*\\_", "", colnames(mds_sing_srsf2_v))
-
-
-plot_list_srsf2_v <- list()
-i <- 1
-lowHighP <- list()
-
-for(sc in colnames(mds_sing_srsf2_v)){
-  tmp <- as.data.frame(mds_sing_srsf2_v) %>% mutate(quartile = ntile(get(sc), 4))
-  tmp$quartile <- plyr::mapvalues(tmp$quartile, from = c(1,2,3,4), to = c("Low", "Med", "Med", "High"))
-  
-  plot_df <- data.frame(Quartile = tmp$quartile, 
-                        Survival = srsf2mut_clinical_val$Days,
-                        Event =  srsf2mut_clinical_val$Status)
-  colnames(plot_df) <- c("Quartile","Survival","Event")
-  #plot_df$Event <- ifelse(plot_df$Event == "ALIVE", 0, 1)
-  
-  plot_df$Quartile <- factor(plot_df$Quartile, levels = c("Low", "Med", "High"), ordered = T)
-  
-  plot_df <- plot_df %>%
-    filter(Quartile != "Med")
-  
-  km_infChem <- survfit(formula = Surv(time = as.numeric(plot_df$Survival), event = as.numeric(plot_df$Event)) ~ plot_df$Quartile,
-                        data = plot_df)
-  
-  lowHighP[[sc]] <- survminer::surv_pvalue(km_infChem)$pval
-  
-  g <- ggsurvplot(km_infChem, data = plot_df,
-                  conf.int = F, pval = TRUE,
-                  fun = function(y) y * 100,
-                  legend = "top", xscale = "d_y", break.time.by=365.25*3,
-                  xlab = "Time to event", ylab="Survival probability (%)", title= sc, size = 2, censor.size = 15
-  )$plot
-  
-  plot_list_srsf2_v[[i]] <- g
-  i <- i + 1
-}
-
-plot_list_srsf2_v <- list()
-i <- 1
-for(sc in colnames(mds_sing_srsf2_v)){
-  tmp <- as.data.frame(mds_sing_srsf2_v) %>% mutate(quartile = ntile(get(sc), 4))
-  tmp$quartile <- plyr::mapvalues(tmp$quartile, from = c(1,2,3,4), to = c("Low", "Med", "Med", "High"))
-  
-  plot_df <- data.frame(Quartile = tmp$quartile, 
-                        Survival = srsf2mut_clinical_val$Days,
-                        Event =  srsf2mut_clinical_val$Status)
-  #colnames(plot_df) <- c("Quartile","Survival","Event")
-  #plot_df$Event <- ifelse(plot_df$Event == "ALIVE", 0, 1)
-  
-  plot_df$Quartile <- factor(plot_df$Quartile, levels = c("Low", "Med", "High"), ordered = T)
-  
-  km_infChem <- survfit(formula = Surv(time = as.numeric(plot_df$Survival), event = plot_df$Event) ~ plot_df$Quartile,
-                        data = plot_df)
-  
-  g <- ggsurvplot(km_infChem, data = plot_df,
-                  conf.int = F, pval = paste0("p-value:",round(lowHighP[[sc]],3)),
-                  fun = function(y) y * 100,
-                  legend = "top", xscale = "d_y", break.time.by=365.25*3,
-                  legend.title = " ", size = 0.3, censor.size = 1.5,
-                  palette = "npg", pval.size = 1.8, pval.coord = c(0.5, 10),
-                  legend.labs = c(paste("High"), paste("Low"), paste("Med")), 
-                  surv.plot.height = 0.3,
-                  xlab = "Years", ylab="Survival probability (%)")$plot + 
-    ggtitle(sc) +
-    theme(axis.line = element_line(colour = "black"),
+          axis.text.y = element_text(size = 5, family = "Helvetica", color = "black"),
+          axis.text.x =  element_text(size = 5, family = "Helvetica", color = "black"), 
+          #axis.ticks.y = element_blank(), axis.ticks.x = element_line(), 
+          legend.position = "none", legend.title = element_blank(), 
+          #legend.text = element_text(size = 5, color = "black"), 
+          #legend.key = element_rect(fill = "transparent"), 
+          axis.line = element_line(colour = "black"), aspect.ratio = 1,
           panel.grid.major = element_blank(),
           panel.grid.minor = element_blank(),
           panel.border = element_blank(),
-          panel.background = element_blank(),
-          #axis.ticks.x = element_blank(),
-          axis.text.x = element_text(size = 5, family = "Helvetica", color = "black"),
-          axis.text.y = element_text(size = 5, family = "Helvetica", color = "black"),
-          axis.title.x = element_text(size = 5, family = "Helvetica", color = "black"),
-          legend.position = "none", aspect.ratio = 1,
-          legend.title = element_text(size = 5, family = "Helvetica", color = "black"),
-          legend.text = element_text(size = 5, family = "Helvetica", color = "black"),
+          panel.background = element_blank())
+}
+
+my_Plot_List_class_sf3_v <- lapply(signif_SF3B1_cells_val, my_Plot_class)
+
+
+# summary plot for SRSF2 ----
+my_comparisons <- list(c("SRSF2\nWT", "SRSF2\nMut"))
+my_Plot_class <- function(signif_SRSF2_cells){
+  plot_it <- cell_mutations
+  plot_it$SRSF2 <- factor(plot_it$SRSF2, levels = c("SRSF2\nWT", "SRSF2\nMut"))
+  ggplot(plot_it, aes(x=SRSF2,y=plot_it[,signif_SRSF2_cells], fill=SRSF2))+
+    stat_boxplot(geom = "errorbar",width=0.3,aes(fill=SRSF2))+
+    geom_boxplot(notch = F,width=0.8,outlier.shape = NA)+
+    scale_fill_manual(values=c("#4DBBD5FF","#E64B35FF"))+
+    labs(x = NULL,
+         y = signif_SRSF2_cells) +
+    geom_jitter(alpha = 0.6, shape=16, position = position_jitter(0.1),color="black",size=0.5)+
+    ylim((min(plot_it[,signif_SRSF2_cells])-0.001), (max(plot_it[,signif_SRSF2_cells])+0.08)) +
+    stat_compare_means(comparisons = my_comparisons,
+                       size = 2.6,
+                       label.y = (max(plot_it[,signif_SRSF2_cells]) + 0.001),
+                       label.x = 0.3,
+                       aes(label = paste0("", after_stat(p.signif))),
+                       tip.length = 0) +
+    #scale_y_continuous(expand = expansion(mult = c(0,0.3))) +
+    theme(axis.title.x = element_text(size = 5, family = "Helvetica", color = "black"), 
           axis.title.y = element_text(size = 5, family = "Helvetica", color = "black"),
-          plot.title = element_text(size = 5, family = "Helvetica", color = "black", vjust = -2))
-  
-  ggsave(paste0("figures/OS_val_srsf2_mutated_",sc,".pdf"), g, width = 44, height = 44 , units = "mm", dpi = 300)
-  
-  plot_list_srsf2_v[[i]] <- g
-  i <- i + 1
-}
-
-pdf(file = "figures/OS_val_SRSF2mut_Agings_KM.pdf",
-    width = 3.46457,
-    height = 4.72441, onefile = T, bg = "white")
-ggarrange(plotlist = plot_list_srsf2_v, nrow = 3, ncol = 2, align = "hv", common.legend = T)
-
-dev.off()
-
-
-
-# BMMNC Clinical Outcomes for Aging signatures of patients that have SF3B1 and SRSF2 mutation ####
-sf3b1mut <- mutations %>% filter(SF3B1 == 1) %>% rownames()
-srsf2mut <- mutations %>% filter(SRSF2 == 1) %>% rownames()
-
-aging_sf3b1mut <- merge_df[sf3b1mut, grep("Aging", colnames(merge_df))]
-aging_srsf2mut <- merge_df[srsf2mut, grep("Aging", colnames(merge_df))]
-
-
-
-### SF3B1 mutated in BMMNC-------
-load("data/MDS_BMMNC_data/MDS_BMMNC_clinical_df_newCat.Rda")
-
-sf3b1mut_clinical <- clinical_bmmnc[sf3b1mut,]
-#singscore_bmmnc <- as.data.frame(t(singscore_bmmnc))
-
-mds_sing <- aging_sf3b1mut
-colnames(mds_sing) <- gsub(".*\\_", "", colnames(mds_sing))
-
-
-plot_list <- list()
-i <- 1
-lowHighP <- list()
-
-for(sc in colnames(mds_sing)){
-  tmp <- as.data.frame(mds_sing) %>% mutate(quartile = ntile(get(sc), 4))
-  tmp$quartile <- plyr::mapvalues(tmp$quartile, from = c(1,2,3,4), to = c("Low", "Med", "Med", "High"))
-  
-  plot_df <- data.frame(Quartile = tmp$quartile, 
-                        Survival = sf3b1mut_clinical$OS,
-                        Event =  sf3b1mut_clinical$Event)
-  colnames(plot_df) <- c("Quartile","Survival","Event")
-  #plot_df$Event <- ifelse(plot_df$Event == "ALIVE", 0, 1)
-  
-  plot_df$Quartile <- factor(plot_df$Quartile, levels = c("Low", "Med", "High"), ordered = T)
-  
-  plot_df <- plot_df %>%
-    filter(Quartile != "Med")
-  
-  km_infChem <- survfit(formula = Surv(time = as.numeric(plot_df$Survival), event = as.numeric(plot_df$Event)) ~ plot_df$Quartile,
-                        data = plot_df)
-  
-  lowHighP[[sc]] <- survminer::surv_pvalue(km_infChem)$pval
-  
-  g <- ggsurvplot(km_infChem, data = plot_df,
-                  conf.int = F, pval = TRUE,
-                  fun = function(y) y * 100,
-                  legend = "top", xscale = "d_y", break.time.by=365.25*3,
-                  xlab = "Time to event", ylab="Survival probability (%)", title= sc, size = 2, censor.size = 15
-  )$plot
-  
-  plot_list[[i]] <- g
-  i <- i + 1
-}
-
-plot_list <- list()
-i <- 1
-for(sc in colnames(mds_sing)){
-  tmp <- as.data.frame(mds_sing) %>% mutate(quartile = ntile(get(sc), 4))
-  tmp$quartile <- plyr::mapvalues(tmp$quartile, from = c(1,2,3,4), to = c("Low", "Med", "Med", "High"))
-  
-  plot_df <- data.frame(Quartile = tmp$quartile, 
-                        Survival = sf3b1mut_clinical$OS,
-                        Event =  sf3b1mut_clinical$Event)
-  #colnames(plot_df) <- c("Quartile","Survival","Event")
-  #plot_df$Event <- ifelse(plot_df$Event == "ALIVE", 0, 1)
-  
-  plot_df$Quartile <- factor(plot_df$Quartile, levels = c("Low", "Med", "High"), ordered = T)
-  
-  km_infChem <- survfit(formula = Surv(time = as.numeric(plot_df$Survival), event = plot_df$Event) ~ plot_df$Quartile,
-                        data = plot_df)
-  
-  g <- ggsurvplot(km_infChem, data = plot_df,
-                  conf.int = F, pval = paste0("p-value:",round(lowHighP[[sc]],3)),
-                  fun = function(y) y * 100,
-                  legend = "top", xscale = "d_y", break.time.by=365.25*3,
-                  legend.title = " ", size = 0.3, censor.size = 1.5,
-                  palette = "npg", pval.size = 1.8, pval.coord = c(0.5, 10),
-                  legend.labs = c(paste("High"), paste("Low"), paste("Med")), 
-                  surv.plot.height = 0.3,
-                  xlab = "Years", ylab="Survival probability (%)")$plot + 
-    ggtitle(sc) +
-    theme(axis.line = element_line(colour = "black"),
+          axis.text.y = element_text(size = 5, family = "Helvetica", color = "black"),
+          axis.text.x =  element_text(size = 5, family = "Helvetica", color = "black"), 
+          #axis.ticks.y = element_blank(), axis.ticks.x = element_line(), 
+          legend.position = "none", legend.title = element_blank(), 
+          #legend.text = element_text(size = 5, color = "black"), 
+          #legend.key = element_rect(fill = "transparent"), 
+          axis.line = element_line(colour = "black"), aspect.ratio = 1,
           panel.grid.major = element_blank(),
           panel.grid.minor = element_blank(),
           panel.border = element_blank(),
-          panel.background = element_blank(),
-          #axis.ticks.x = element_blank(),
-          axis.text.x = element_text(size = 5, family = "Helvetica", color = "black"),
-          axis.text.y = element_text(size = 5, family = "Helvetica", color = "black"),
-          axis.title.x = element_text(size = 5, family = "Helvetica", color = "black"),
-          legend.position = "none", aspect.ratio = 1,
-          legend.title = element_text(size = 5, family = "Helvetica", color = "black"),
-          legend.text = element_text(size = 5, family = "Helvetica", color = "black"),
+          panel.background = element_blank())
+}
+
+
+my_Plot_List_class_s2_d <- lapply(signif_SRSF2_cells, my_Plot_class)
+
+
+s2_pm <- plot_grid(plotlist = my_Plot_List_class_s2_d, align = "hv", 
+                   nrow = 4, ncol = 5)
+
+ggsave("figures/srsf2_disc_boxplot.pdf", s2_pm, width = 180, units = "mm", dpi = 300)
+
+
+# summary plot for SRSF2 validation ----
+my_comparisons <- list(c("SRSF2\nWT", "SRSF2\nMut"))
+my_Plot_class <- function(signif_SRSF2_cells_val){
+  plot_it <- cell_mutations_v
+  plot_it$SRSF2 <- factor(plot_it$SRSF2, levels = c("SRSF2\nWT", "SRSF2\nMut"))
+  ggplot(plot_it, aes(x=SRSF2,y=plot_it[,signif_SRSF2_cells_val], fill=SRSF2))+
+    stat_boxplot(geom = "errorbar",width=0.3,aes(fill=SRSF2))+
+    geom_boxplot(notch = F,width=0.8,outlier.shape = NA)+
+    scale_fill_manual(values=c("#4DBBD5FF","#E64B35FF"))+
+    labs(x = NULL,
+         y = signif_SRSF2_cells_val) +
+    geom_jitter(alpha = 0.6, shape=16, position = position_jitter(0.1),color="black",size=0.5)+
+    ylim((min(plot_it[,signif_SRSF2_cells_val])-0.001), (max(plot_it[,signif_SRSF2_cells_val])+0.08)) +
+    stat_compare_means(comparisons = my_comparisons,
+                       size = 2.6,
+                       label.y = (max(plot_it[,signif_SRSF2_cells_val]) + 0.001),
+                       label.x = 0.3,
+                       aes(label = paste0("", after_stat(p.signif))),
+                       tip.length = 0) +
+    #scale_y_continuous(expand = expansion(mult = c(0,0.3))) +
+    theme(axis.title.x = element_text(size = 5, family = "Helvetica", color = "black"), 
           axis.title.y = element_text(size = 5, family = "Helvetica", color = "black"),
-          plot.title = element_text(size = 5, family = "Helvetica", color = "black", vjust = -2))
-  
-  ggsave(paste0("figures/OS_disc_SF3B1_mutated_",sc,".pdf"), g, width = 44, height = 44 , units = "mm", dpi = 300)
-  
-  plot_list[[i]] <- g
-  i <- i + 1
-}
-
-pdf(file = "figures/OS_disc_SF3B1mut_Agings_KM.pdf",
-    width = 3.46457,
-    height = 4.72441, onefile = T, bg = "white")
-ggarrange(plotlist = plot_list, nrow = 3, ncol = 2, align = "hv", common.legend = T)
-
-dev.off()
-
-
-
-### SRSF2 mutated in BMMNC-------
-
-srsf2mut_clinical <- clinical_bmmnc[srsf2mut,]
-#singscore_bmmnc <- as.data.frame(t(singscore_bmmnc))
-
-mds_sing_srsf2 <- aging_srsf2mut
-colnames(mds_sing_srsf2) <- gsub(".*\\_", "", colnames(mds_sing_srsf2))
-
-
-plot_list_srsf2 <- list()
-i <- 1
-lowHighP <- list()
-
-for(sc in colnames(mds_sing_srsf2)){
-  tmp <- as.data.frame(mds_sing_srsf2) %>% mutate(quartile = ntile(get(sc), 4))
-  tmp$quartile <- plyr::mapvalues(tmp$quartile, from = c(1,2,3,4), to = c("Low", "Med", "Med", "High"))
-  
-  plot_df <- data.frame(Quartile = tmp$quartile, 
-                        Survival = srsf2mut_clinical$OS,
-                        Event =  srsf2mut_clinical$Event)
-  colnames(plot_df) <- c("Quartile","Survival","Event")
-  #plot_df$Event <- ifelse(plot_df$Event == "ALIVE", 0, 1)
-  
-  plot_df$Quartile <- factor(plot_df$Quartile, levels = c("Low", "Med", "High"), ordered = T)
-  
-  plot_df <- plot_df %>%
-    filter(Quartile != "Med")
-  
-  km_infChem <- survfit(formula = Surv(time = as.numeric(plot_df$Survival), event = as.numeric(plot_df$Event)) ~ plot_df$Quartile,
-                        data = plot_df)
-  
-  lowHighP[[sc]] <- survminer::surv_pvalue(km_infChem)$pval
-  
-  g <- ggsurvplot(km_infChem, data = plot_df,
-                  conf.int = F, pval = TRUE,
-                  fun = function(y) y * 100,
-                  legend = "top", xscale = "d_y", break.time.by=365.25*3,
-                  xlab = "Time to event", ylab="Survival probability (%)", title= sc, size = 2, censor.size = 15
-  )$plot
-  
-  plot_list_srsf2[[i]] <- g
-  i <- i + 1
-}
-
-plot_list_srsf2 <- list()
-i <- 1
-for(sc in colnames(mds_sing_srsf2)){
-  tmp <- as.data.frame(mds_sing_srsf2) %>% mutate(quartile = ntile(get(sc), 4))
-  tmp$quartile <- plyr::mapvalues(tmp$quartile, from = c(1,2,3,4), to = c("Low", "Med", "Med", "High"))
-  
-  plot_df <- data.frame(Quartile = tmp$quartile, 
-                        Survival = srsf2mut_clinical$OS,
-                        Event =  srsf2mut_clinical$Event)
-  #colnames(plot_df) <- c("Quartile","Survival","Event")
-  #plot_df$Event <- ifelse(plot_df$Event == "ALIVE", 0, 1)
-  
-  plot_df$Quartile <- factor(plot_df$Quartile, levels = c("Low", "Med", "High"), ordered = T)
-  
-  km_infChem <- survfit(formula = Surv(time = as.numeric(plot_df$Survival), event = plot_df$Event) ~ plot_df$Quartile,
-                        data = plot_df)
-  
-  g <- ggsurvplot(km_infChem, data = plot_df,
-                  conf.int = F, pval = paste0("p-value:",round(lowHighP[[sc]],3)),
-                  fun = function(y) y * 100,
-                  legend = "top", xscale = "d_y", break.time.by=365.25*3,
-                  legend.title = " ", size = 0.3, censor.size = 1.5,
-                  palette = "npg", pval.size = 1.8, pval.coord = c(0.5, 10),
-                  legend.labs = c(paste("High"), paste("Low"), paste("Med")), 
-                  surv.plot.height = 0.3,
-                  xlab = "Years", ylab="Survival probability (%)")$plot + 
-    ggtitle(sc) +
-    theme(axis.line = element_line(colour = "black"),
+          axis.text.y = element_text(size = 5, family = "Helvetica", color = "black"),
+          axis.text.x =  element_text(size = 5, family = "Helvetica", color = "black"), 
+          #axis.ticks.y = element_blank(), axis.ticks.x = element_line(), 
+          legend.position = "none", legend.title = element_blank(), 
+          #legend.text = element_text(size = 5, color = "black"), 
+          #legend.key = element_rect(fill = "transparent"), 
+          axis.line = element_line(colour = "black"), aspect.ratio = 1,
           panel.grid.major = element_blank(),
           panel.grid.minor = element_blank(),
           panel.border = element_blank(),
-          panel.background = element_blank(),
-          #axis.ticks.x = element_blank(),
-          axis.text.x = element_text(size = 5, family = "Helvetica", color = "black"),
-          axis.text.y = element_text(size = 5, family = "Helvetica", color = "black"),
-          axis.title.x = element_text(size = 5, family = "Helvetica", color = "black"),
-          legend.position = "none", aspect.ratio = 1,
-          legend.title = element_text(size = 5, family = "Helvetica", color = "black"),
-          legend.text = element_text(size = 5, family = "Helvetica", color = "black"),
-          axis.title.y = element_text(size = 5, family = "Helvetica", color = "black"),
-          plot.title = element_text(size = 5, family = "Helvetica", color = "black", vjust = -2))
-  
-  ggsave(paste0("figures/OS_disc_srsf2_mutated_",sc,".pdf"), g, width = 44, height = 44 , units = "mm", dpi = 300)
-  
-  plot_list_srsf2[[i]] <- g
-  i <- i + 1
+          panel.background = element_blank())
 }
 
-pdf(file = "figures/OS_disc_SRSF2mut_Agings_KM.pdf",
-    width = 3.46457,
-    height = 4.72441, onefile = T, bg = "white")
-ggarrange(plotlist = plot_list_srsf2, nrow = 3, ncol = 2, align = "hv", common.legend = T)
 
-dev.off()
+my_Plot_List_class_s2_v <- lapply(signif_SRSF2_cells_val, my_Plot_class)
 
+
+s2_pm_val <- plot_grid(plotlist = my_Plot_List_class_s2_v, align = "hv", 
+                       nrow = 2, ncol = 3)
+
+ggsave("figures/srsf2_val_boxplot.pdf", s2_pm_val, width = 110, height = 110, units = "mm", dpi = 300)
 
 
 
@@ -761,7 +517,7 @@ dev.off()
 
 
 #### EFS of singscores for Aging SF3B1 status in BMMNC-------
-load("data/OneDrive_1_20-09-2023/MDS_BMMNC_clinical_df_newCat.Rda")
+load("data/MDS_BMMNC_data/MDS_BMMNC_clinical_df_newCat.Rda")
 
 clinical_bmmnc$PatientId <- rownames(clinical_bmmnc)
 sf3b1mut_clinical <- clinical_bmmnc[sf3b1mut,]
@@ -848,7 +604,7 @@ ggsurvplot(fit, data = san,
            surv.plot.height = 0.3,
            xlab = "Years", ylab="Survival probability (%)")$plot 
 
-# CD34 Clinical Outcomes of singscores for Aging based on SF3B1 status in -------
+# CD34 Clinical Outcomes of singscores for Aging based on SF3B1 status  -------
 load("data/GSE114922/GSE114922_clinical_df_newCat.Rda")
 
 load("data/merge_validation_for_corr.Rda")
