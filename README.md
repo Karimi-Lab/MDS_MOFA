@@ -7,7 +7,7 @@ Scripts and data used in the Multi modal MDS analysis paper
 [matrices_preparation_for_MOFA](Scripts/matrices_preparation_for_MOFA.R): Create list of matrices of same samples' different modalities for both cohort separately 
 [BMMNC_MOFA_04012023.Rmd](Scripts/BMMNC_MOFA_04012023.Rmd): Downstream analysis of latent factors from MOFA, including survival analysis for BMMNC cohort 
 [CD34RNAseq_MOFA_04012023.Rmd](Scripts/CD34RNAseq_MOFA_04012023.Rmd): Downstream analysis of latent factors from MOFA, including survival analysis for CD34+ RNASeq cohort 
-[Characterization_of_mutations_relation_with_geneSets.R](Scripts/Characterization_of_mutations_relation_with_geneSets.R): Characterization of SF3B1 & SRSF2 mutation association with gene sets scores, including survival analysis 
+[Characterization_of_mutations_relation_with_geneSets.R](Scripts/Characterization_of_mutations_relation_with_geneSets.R): Characterization of SF3B1 & SRSF2 mutation association with gene sets scores, including survival analysis  
 
 ## Example figure generation
 ### Heatmap of important features within views per factors (_Fig 2 a-b_)
