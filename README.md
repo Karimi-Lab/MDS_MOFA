@@ -1,3 +1,6 @@
+![Repo Size](https://img.shields.io/github/repo-size/Karimi-Lab/MDS_MOFA)
+[![DOI](https://img.shields.io/badge/DOI-10.7554%2FeLife.97096.3-blue)](https://doi.org/10.7554/eLife.97096.3)
+
 # MDS_MOFA
 Scripts and data used in the Multi modal MDS analysis paper
 
